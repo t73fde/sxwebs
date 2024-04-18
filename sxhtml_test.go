@@ -18,8 +18,8 @@ import (
 	"testing"
 
 	"t73f.de/r/sx"
-	"t73f.de/r/sx/sxhtml"
 	"t73f.de/r/sx/sxreader"
+	"t73f.de/r/sxhtml"
 )
 
 type testcase struct {
