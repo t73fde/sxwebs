@@ -4,6 +4,7 @@ This is a collection of utility functions to build [Sx](https://t73f.de/r/sx)
 web applications in [Go](https://go.dev/).
 
 * `sxhtml`: Generate HTML from S-Expressions
+* `sxhttp`: Encapsulates net/http definitions as Sx objects
 
 ## Use instructions
 
