@@ -19,6 +19,7 @@ import (
 	"net/http"
 
 	"t73f.de/r/sx"
+	"t73f.de/r/sx/sxeval"
 )
 
 // SxRequest is a http.Request, seen as a Sx object.
@@ -39,8 +40,46 @@ func (r *SxRequest) IsEqual(other sx.Object) bool {
 	otherReq, isReq := other.(*SxRequest)
 	return isReq && r == otherReq
 }
-func (r *SxRequest) String() string   { return fmt.Sprintf("#<SxRequest:%v>", r.GetValue()) }
+func (r *SxRequest) String() string {
+	return fmt.Sprintf("#<SxRequest:%v>", r.GetValue())
+}
 func (r *SxRequest) GoString() string { return r.String() }
+
+// GetRequest returns the given sx.Object as a SxRequest, if possible.
+func GetRequest(obj sx.Object) (*SxRequest, bool) {
+	if sx.IsNil(obj) {
+		return nil, false
+	}
+	sym, ok := obj.(*SxRequest)
+	return sym, ok
+}
+
+// GetBuiltinRequest returns the given sx.Object as a SxRequest. If this is not
+// possible, an error is returned.
+//
+// This function can be used as a helper function to implement sxeval.Builtin.
+func GetBuiltinRequest(arg sx.Object, pos int) (*SxRequest, error) {
+	if r, isRequest := GetRequest(arg); isRequest {
+		return r, nil
+	}
+	return nil, fmt.Errorf("argument %d is not a http request, but %T/%v", pos+1, arg, arg)
+}
+
+var URLPath = sxeval.Builtin{
+	Name:     "url-path",
+	MinArity: 1,
+	MaxArity: 1,
+	TestPure: sxeval.AssertPure,
+	Fn1: func(_ *sxeval.Environment, arg sx.Object) (sx.Object, error) {
+		r, err := GetBuiltinRequest(arg, 0)
+		if err != nil {
+			return sx.Nil(), err
+		}
+		return sx.MakeString(r.GetValue().URL.Path), nil
+	},
+}
+
+// ----- ResponseWriter ------------------------------------------------------
 
 // SxResponseWriter is a http.ResponseWriter, seen as a Sx object.
 type SxResponseWriter struct{ val http.ResponseWriter }
