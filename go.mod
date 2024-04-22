@@ -1,4 +1,4 @@
-module t73f.de/r/sxhtml
+module t73f.de/r/sxwebs
 
 go 1.22
 

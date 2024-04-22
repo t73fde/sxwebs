@@ -19,7 +19,7 @@ import (
 
 	"t73f.de/r/sx"
 	"t73f.de/r/sx/sxreader"
-	"t73f.de/r/sxhtml"
+	"t73f.de/r/sxwebs/sxhtml"
 )
 
 type testcase struct {
