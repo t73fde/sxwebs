@@ -106,7 +106,7 @@ SxHTML defines some additional symbols, all starting with "@":
   symbol and the second component is a string, the nil value, or a number.
 * `@C` marks some content that should be written as `<![CDATA[...]]>`.
 * `@H` specifies some HTML content that must not be escaped. For example,
-  `@H "&amp;"` is transformed to `&amp;`, but not `&amp;amp;`.
+  `(@H "&amp;")` is transformed to `&amp;`, but not `&amp;amp;`.
 * `@L` contains elements that just just be transformed, without specifying a
   tag. It is used by generating software that wants to generate HTML for a
   sequence of elements that do not belong to a certain tag.
