@@ -15,12 +15,60 @@
 package sxhttp
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"t73f.de/r/sx"
 	"t73f.de/r/sx/sxeval"
 )
+
+// ----- SxContext -----------------------------------------------------------
+
+// SxContext is a context.Context, seen as a Sx object.
+type SxContext struct{ val context.Context }
+
+// MakeContext creates a SxContext from a context.Context.
+func MakeContext(ctx context.Context) SxContext { return SxContext{ctx} }
+
+// GetValue returns the context.Context value.
+func (ctx SxContext) GetValue() context.Context { return ctx.val }
+
+func (SxContext) IsNil() bool  { return false }
+func (SxContext) IsAtom() bool { return true }
+func (ctx SxContext) IsEqual(other sx.Object) bool {
+	if other.IsNil() {
+		return false
+	}
+	otherCtx, isCtx := other.(SxContext)
+	return isCtx && ctx.val == otherCtx.val
+}
+func (ctx SxContext) String() string {
+	return fmt.Sprintf("#<SxContext:%v>", ctx.val)
+}
+func (ctx SxContext) GoString() string { return ctx.String() }
+
+// GetContext returns the given sx.Object as a SxContext, if possible.
+func GetContext(obj sx.Object) (SxContext, bool) {
+	if obj.IsNil() {
+		return SxContext{}, false
+	}
+	ctx, ok := obj.(SxContext)
+	return ctx, ok
+}
+
+// GetBuiltinContext returns the given sx.Object as a SxContext. If this is not
+// possible, an error is returned.
+//
+// This function can be used as a helper function to implement sxeval.Builtin.
+func GetBuiltinContext(arg sx.Object, pos int) (SxContext, error) {
+	if ctx, isCtx := GetContext(arg); isCtx {
+		return ctx, nil
+	}
+	return SxContext{}, fmt.Errorf("argument %d is not a context, but %T/%v", pos+1, arg, arg)
+}
+
+// ----- SxRequest -----------------------------------------------------------
 
 // SxRequest is a http.Request, seen as a Sx object.
 type SxRequest http.Request
@@ -66,7 +114,7 @@ func GetBuiltinRequest(arg sx.Object, pos int) (*SxRequest, error) {
 }
 
 var URLPath = sxeval.Builtin{
-	Name:     "url-path",
+	Name:     "request-url-path",
 	MinArity: 1,
 	MaxArity: 1,
 	TestPure: sxeval.AssertPure,
@@ -78,28 +126,38 @@ var URLPath = sxeval.Builtin{
 		return sx.MakeString(r.GetValue().URL.Path), nil
 	},
 }
+var Context = sxeval.Builtin{
+	Name:     "request-context",
+	MinArity: 1,
+	MaxArity: 1,
+	TestPure: sxeval.AssertPure,
+	Fn1: func(_ *sxeval.Environment, arg sx.Object) (sx.Object, error) {
+		r, err := GetBuiltinRequest(arg, 0)
+		if err != nil {
+			return sx.Nil(), err
+		}
+		return MakeContext(r.GetValue().Context()), nil
+	},
+}
 
-// ----- ResponseWriter ------------------------------------------------------
+// ----- SxResponseWriter ----------------------------------------------------
 
 // SxResponseWriter is a http.ResponseWriter, seen as a Sx object.
 type SxResponseWriter struct{ val http.ResponseWriter }
 
-func MakeResponseWriter(w http.ResponseWriter) *SxResponseWriter { return &SxResponseWriter{w} }
-func (w *SxResponseWriter) GetValue() http.ResponseWriter        { return w.val }
+func MakeResponseWriter(w http.ResponseWriter) SxResponseWriter { return SxResponseWriter{w} }
+func (w SxResponseWriter) GetValue() http.ResponseWriter        { return w.val }
 
-func (w *SxResponseWriter) IsNil() bool { return w == nil }
-func (*SxResponseWriter) IsAtom() bool  { return true }
-func (w *SxResponseWriter) IsEqual(other sx.Object) bool {
-	if w == nil {
-		return sx.IsNil(other)
-	}
+func (SxResponseWriter) IsNil() bool  { return false }
+func (SxResponseWriter) IsAtom() bool { return true }
+func (w SxResponseWriter) IsEqual(other sx.Object) bool {
 	if sx.IsNil(other) {
 		return false
 	}
 	otherResp, isResp := other.(*SxResponseWriter)
 	return isResp && w.val == otherResp.val
 }
-func (w *SxResponseWriter) String() string {
+func (w SxResponseWriter) String() string {
 	return fmt.Sprintf("#<SxResponseWriter:%v>", w.GetValue())
 }
-func (w *SxResponseWriter) GoString() string { return w.String() }
+func (w SxResponseWriter) GoString() string { return w.String() }
