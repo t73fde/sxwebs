@@ -3,8 +3,9 @@
 This is a collection of utility functions to build [Sx](https://t73f.de/r/sx)
 web applications in [Go](https://go.dev/).
 
-* `sxhtml`: Generate HTML from S-Expressions
-* `sxhttp`: Encapsulates net/http definitions as Sx objects
+* [sxhtml](/dir?name=sxhtml): Generate HTML from S-Expressions
+* [sxhttp](/dir?name=sxhttp): Encapsulates net/http definitions as Sx objects
+* [sxforms](/dir?name=sxforms): HTML form rendering and validation, similar to [WTForms](https://wtforms.readthedocs.io/)
 
 ## Use instructions
 
