@@ -25,6 +25,8 @@ import (
 
 // Form represents a HTML form.
 type Form struct {
+	action     string
+	method     string
 	fields     []Field
 	fieldnames map[string]Field
 	messages   Messages
@@ -37,10 +39,17 @@ func Define(fields ...Field) *Form {
 		fieldnames[field.Name()] = field
 	}
 	return &Form{
+		method:     http.MethodPost,
 		fields:     fields,
 		fieldnames: fieldnames,
 	}
 }
+
+// SetAction updates the "action" URL attribute.
+func (f *Form) SetAction(action string) *Form { f.action = action; return f }
+
+// SetMethodGET updates the "method" attribute to the value "GET".
+func (f *Form) SetMethodGET() *Form { f.method = http.MethodGet; return f }
 
 // Messages contains all messages, as a map of field names to a list of string.
 // Messages for the whole form will use the empty string as a field name.
@@ -83,14 +92,18 @@ func (f *Form) SetFormValues(data url.Values) {
 	f.messages = nil
 }
 
-// ValidateRequestForm populates the form with the values of the given HTTP request,
+// ValidRequestForm populates the form with the values of the given HTTP request,
 // and validates them.
-func (f *Form) ValidateRequestForm(r *http.Request) bool {
-	if err := r.ParseForm(); err != nil {
-		f.messages = Messages{"": {err.Error()}}
-		return false
+func (f *Form) ValidRequestForm(r *http.Request) bool {
+	if f.method == http.MethodGet {
+		f.SetFormValues(r.URL.Query())
+	} else {
+		if err := r.ParseForm(); err != nil {
+			f.messages = Messages{"": {err.Error()}}
+			return false
+		}
+		f.SetFormValues(r.PostForm)
 	}
-	f.SetFormValues(r.PostForm)
 	return f.IsValid()
 }
 
@@ -128,8 +141,8 @@ func (f *Form) Render() sx.Object {
 	lb.Add(sx.MakeSymbol("form"))
 	lb.Add(sx.MakeList(
 		sxhtml.SymAttr,
-		sx.Cons(sx.MakeSymbol("action"), sx.MakeString("")),
-		sx.Cons(sx.MakeSymbol("method"), sx.MakeString("POST")),
+		sx.Cons(sx.MakeSymbol("action"), sx.MakeString(f.action)),
+		sx.Cons(sx.MakeSymbol("method"), sx.MakeString(f.method)),
 	))
 	for _, field := range f.fields {
 		fieldID := field.Name()
@@ -146,118 +159,20 @@ func (f *Form) Render() sx.Object {
 				sx.MakeString(label),
 			))
 		}
+
+		for _, msg := range f.messages[field.Name()] {
+			flb.Add(sx.MakeList(
+				sx.MakeSymbol("span"),
+				sx.MakeList(
+					sxhtml.SymAttr,
+					sx.Cons(sx.MakeSymbol("class"), sx.MakeString("message")),
+				),
+				sx.MakeString(msg),
+			))
+		}
+
 		flb.Add(field.Render(fieldID))
 		lb.Add(flb.List())
 	}
 	return lb.List()
-}
-
-// Field represents a HTTP form field.
-type Field interface {
-	Name() string
-	Label() string
-	Value() string
-	SetValue(string)
-	Validators() []Validator
-	Render(string) sx.Object
-}
-
-// InputField represents a HTTP <input> field.
-type InputField struct {
-	itype      string
-	name       string
-	label      string
-	value      string
-	validators []Validator
-	autofocus  bool
-}
-
-func (fd *InputField) Name() string  { return fd.name }
-func (fd *InputField) Label() string { return fd.label }
-func (fd *InputField) Value() string {
-	if fd.itype == "submit" {
-		return ""
-	}
-	return fd.value
-}
-func (fd *InputField) SetValue(value string)   { fd.value = value }
-func (fd *InputField) Validators() []Validator { return fd.validators }
-func (fd *InputField) Render(fieldID string) sx.Object {
-	var lb sx.ListBuilder
-	lb.Add(sxhtml.SymAttr)
-	lb.Add(sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)))
-	lb.Add(sx.Cons(sx.MakeSymbol("name"), sx.MakeString(fd.name)))
-	lb.Add(sx.Cons(sx.MakeSymbol("type"), sx.MakeString(fd.itype)))
-	lb.Add(sx.Cons(sx.MakeSymbol("value"), sx.MakeString(fd.value)))
-	if fd.autofocus {
-		lb.Add(sx.Cons(sx.MakeSymbol("autofocus"), sx.Nil()))
-	}
-	for _, validator := range fd.validators {
-		if valAttrs := validator.Attributes(); valAttrs != nil {
-			lb.ExtendBang(valAttrs)
-		}
-	}
-	return sx.MakeList(sx.MakeSymbol("input"), lb.List())
-}
-
-// Autofocus for the field.
-func (fd *InputField) Autofocus() *InputField { fd.autofocus = true; return fd }
-
-// TextField builds a new text field.
-func TextField(name, label string, validators ...Validator) *InputField {
-	return &InputField{
-		itype:      "text",
-		name:       name,
-		label:      label,
-		validators: validators,
-	}
-}
-
-// PasswordField builds a new password field.
-func PasswordField(name, label string, validators ...Validator) *InputField {
-	return &InputField{
-		itype:      "password",
-		name:       name,
-		label:      label,
-		validators: validators,
-	}
-}
-
-// SubmitField builds a new submit field.
-func SubmitField(name, value string) *InputField {
-	return &InputField{
-		itype: "submit",
-		name:  name,
-		value: value,
-	}
-}
-
-// StopValidationError is a validation error that stops further validation of the field.
-type StopValidationError string
-
-func (sve StopValidationError) Error() string { return string(sve) }
-
-// Validator is use to check if a field value is valid.
-type Validator interface {
-	Check(Field) error
-
-	// Attributes contain additional HTML attributes for a field.
-	Attributes() *sx.Pair
-}
-
-// Required is a validator that checks if data is available.
-type Required string
-
-func (ir Required) Check(field Field) error {
-	if field.Value() != "" {
-		return nil
-	}
-	if string(ir) == "" {
-		return StopValidationError("Required")
-	}
-	return StopValidationError(string(ir))
-}
-
-func (Required) Attributes() *sx.Pair {
-	return sx.MakeList(sx.Cons(sx.MakeSymbol("required"), sx.Nil()))
 }

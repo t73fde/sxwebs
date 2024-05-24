@@ -24,8 +24,8 @@ import (
 
 func TestSimpleRequiredForm(t *testing.T) {
 	f := sxforms.Define(
-		sxforms.TextField("username", "User name", sxforms.Required("username")),
-		sxforms.PasswordField("password", "Password", sxforms.Required("password")),
+		sxforms.TextField("username", "User name", sxforms.Required{"username"}),
+		sxforms.PasswordField("password", "Password", sxforms.Required{"password"}),
 		sxforms.SubmitField("submit", "Login"),
 	)
 	f.SetFormValues(nil)
