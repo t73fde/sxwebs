@@ -23,37 +23,37 @@ import (
 )
 
 func TestSimpleRequiredForm(t *testing.T) {
-	f := sxforms.Make(
-		sxforms.MakeTextField("username", "User name", sxforms.InputRequired("username")),
-		sxforms.MakePasswordField("password", "Password", sxforms.InputRequired("password")),
-		sxforms.MakeSubmitField("submit", "Login"),
+	f := sxforms.Define(
+		sxforms.TextField("username", "User name", sxforms.Required("username")),
+		sxforms.PasswordField("password", "Password", sxforms.Required("password")),
+		sxforms.SubmitField("submit", "Login"),
 	)
-	f.SetFormData(nil)
+	f.SetFormValues(nil)
 	if got := f.IsValid(); got {
 		t.Error("empty form must not validate")
 	}
-	gotErrs := f.Errors()
-	if len(gotErrs) == 0 {
-		t.Error("form did not validate, but there are no errors")
+	gotMsgs := f.Messages()
+	if len(gotMsgs) == 0 {
+		t.Error("form did not validate, but there are no messages")
 	}
-	expErrs := map[string][]error{
-		"password": {sxforms.StopValidationError("password")},
-		"username": {sxforms.StopValidationError("username")},
+	expMsgs := sxforms.Messages{
+		"password": {"password"},
+		"username": {"username"},
 	}
-	if !maps.EqualFunc(expErrs, gotErrs, slices.Equal) {
-		t.Errorf("expected errors: %v, but got %v", expErrs, gotErrs)
+	if !maps.EqualFunc(expMsgs, gotMsgs, slices.Equal) {
+		t.Errorf("expected errors: %v, but got %v", expMsgs, gotMsgs)
 	}
 
-	f.SetFormData(url.Values{"username": nil, "password": nil})
+	f.SetFormValues(url.Values{"username": nil, "password": nil})
 	if got := f.IsValid(); got {
 		t.Error("nil form must not validate")
 	}
 
-	f.SetFormData(url.Values{"username": {"user"}, "password": {"pass"}})
+	f.SetFormValues(url.Values{"username": {"user"}, "password": {"pass"}})
 	if got := f.IsValid(); !got {
 		t.Error("normal form must validate")
 	}
-	expData := map[string]string{"password": "pass", "username": "user"}
+	expData := sxforms.Data{"password": "pass", "username": "user"}
 	if gotData := f.Data(); !maps.Equal(expData, gotData) {
 		t.Errorf("expected data %v, but got %v", expData, gotData)
 	}
