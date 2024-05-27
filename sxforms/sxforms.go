@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"t73f.de/r/sx"
 	"t73f.de/r/sxwebs/sxhtml"
@@ -51,12 +52,53 @@ func (f *Form) SetAction(action string) *Form { f.action = action; return f }
 // SetMethodGET updates the "method" attribute to the value "GET".
 func (f *Form) SetMethodGET() *Form { f.method = http.MethodGet; return f }
 
+// Clear all field data and messages.
+func (f *Form) Clear() {
+	for _, field := range f.fields {
+		field.Clear()
+	}
+	f.messages = nil
+}
+
 // Messages contains all messages, as a map of field names to a list of string.
 // Messages for the whole form will use the empty string as a field name.
 type Messages map[string][]string
 
+// Add a new message for the given field.
+func (m Messages) Add(fieldName, message string) Messages {
+	if len(m) == 0 {
+		return Messages{fieldName: {message}}
+	}
+	m[fieldName] = append(m[fieldName], message)
+	return m
+}
+
 // Data contains all form data, as a map of field names to field values.
 type Data map[string]string
+
+// Get string data of a field. Return empty string for unknwon field.
+func (d Data) Get(fieldName string) string {
+	if len(d) == 0 {
+		return ""
+	}
+	if value, found := d[fieldName]; found {
+		return value
+	}
+	return ""
+}
+
+// GetDate returns the value of the given field as a time.Time, but only
+// as a real date, with time 00:00:00.
+func (d Data) GetDate(fieldName string) time.Time {
+	if len(d) > 0 {
+		if value, found := d[fieldName]; found {
+			if result, err := time.Parse(htmlDateLayout, value); err == nil {
+				return result
+			}
+		}
+	}
+	return time.Time{}
+}
 
 // Fields return the sequence of fields.
 func (f *Form) Fields() []Field { return f.fields }
@@ -76,7 +118,8 @@ func (f *Form) Data() Data {
 }
 
 // SetFormValues populates the form with the given URL values.
-func (f *Form) SetFormValues(data url.Values) {
+func (f *Form) SetFormValues(data url.Values) bool {
+	ok := true
 	for name, values := range data {
 		field, found := f.fieldnames[name]
 		if !found {
@@ -87,49 +130,56 @@ func (f *Form) SetFormValues(data url.Values) {
 		if len(values) > 0 {
 			value = values[0]
 		}
-		field.SetValue(strings.TrimSpace(value))
+		err := field.SetValue(strings.TrimSpace(value))
+		if err != nil {
+			f.messages = f.messages.Add(name, err.Error())
+			ok = false
+		}
 	}
-	f.messages = nil
+	return ok
 }
 
 // ValidRequestForm populates the form with the values of the given HTTP request,
 // and validates them.
 func (f *Form) ValidRequestForm(r *http.Request) bool {
-	if f.method == http.MethodGet {
-		f.SetFormValues(r.URL.Query())
-	} else {
-		if err := r.ParseForm(); err != nil {
-			f.messages = Messages{"": {err.Error()}}
-			return false
-		}
-		f.SetFormValues(r.PostForm)
+	if f.method == http.MethodPost {
+		return f.ValidOnSubmit(r)
 	}
-	return f.IsValid()
+	return f.SetFormValues(r.URL.Query()) && f.IsValid()
+}
+
+// ValidOnSubmit return true, if the request method was "POST" and the
+// populated values of the request were successully validated.
+func (f *Form) ValidOnSubmit(r *http.Request) bool {
+	if r.Method != http.MethodPost {
+		return false
+	}
+	if err := r.ParseForm(); err != nil {
+		f.messages = Messages{"": {err.Error()}}
+		return false
+	}
+	return f.SetFormValues(r.PostForm) && f.IsValid()
 }
 
 // IsValid returns true if the form has been successfully validates.
 func (f *Form) IsValid() bool {
+	if len(f.messages) > 0 {
+		return false
+	}
 	var messages Messages
 	for _, field := range f.fields {
 		fieldName := field.Name()
 		for _, validator := range field.Validators() {
 			if err := validator.Check(field); err != nil {
-				if len(messages) == 0 {
-					messages = Messages{fieldName: {err.Error()}}
-				} else {
-					messages[fieldName] = append(messages[fieldName], err.Error())
-				}
+				messages = messages.Add(fieldName, err.Error())
 				if _, isStop := err.(StopValidationError); isStop {
 					break
 				}
 			}
 		}
 	}
-	if len(messages) == 0 {
-		return true
-	}
 	f.messages = messages
-	return false
+	return len(messages) == 0
 }
 
 // Messages return the map of error messages, from an earlier validation.

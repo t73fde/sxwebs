@@ -14,6 +14,8 @@
 package sxforms
 
 import (
+	"time"
+
 	"t73f.de/r/sx"
 	"t73f.de/r/sxwebs/sxhtml"
 )
@@ -23,7 +25,8 @@ type Field interface {
 	Name() string
 	Label() string
 	Value() string
-	SetValue(string)
+	Clear()
+	SetValue(string) error
 	Validators() []Validator
 	Render(string) sx.Object
 }
@@ -46,7 +49,29 @@ func (fd *InputField) Value() string {
 	}
 	return fd.value
 }
-func (fd *InputField) SetValue(value string)   { fd.value = value }
+
+func (fd *InputField) Clear() {
+	if fd.itype != "submit" {
+		fd.value = ""
+	}
+}
+
+// Time layouts of data coming from HTML forms
+const (
+	htmlDateLayout = "2006-01-02"
+)
+
+func (fd *InputField) SetValue(value string) error {
+	fd.value = value
+	switch fd.itype {
+	case "date":
+		if _, err := time.Parse(htmlDateLayout, value); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (fd *InputField) Validators() []Validator { return fd.validators }
 func (fd *InputField) Render(fieldID string) sx.Object {
 	var lb sx.ListBuilder
@@ -73,6 +98,16 @@ func (fd *InputField) SetAutofocus() *InputField { fd.autofocus = true; return f
 func TextField(name, label string, validators ...Validator) *InputField {
 	return &InputField{
 		itype:      "text",
+		name:       name,
+		label:      label,
+		validators: validators,
+	}
+}
+
+// DateField builds a new field to enter dates.
+func DateField(name, label string, validators ...Validator) *InputField {
+	return &InputField{
+		itype:      "date",
 		name:       name,
 		label:      label,
 		validators: validators,
