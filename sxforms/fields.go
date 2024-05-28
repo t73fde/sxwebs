@@ -28,6 +28,7 @@ type Field interface {
 	Clear()
 	SetValue(string) error
 	Validators() []Validator
+	Disable() Field
 	Render(string, []string) sx.Object
 }
 
@@ -41,6 +42,7 @@ type InputElement struct {
 	value      string
 	validators []Validator
 	autofocus  bool
+	disabled   bool
 }
 
 // Constants for InputField.itype
@@ -83,6 +85,8 @@ func (fd *InputElement) SetValue(value string) error {
 
 func (fd *InputElement) Validators() []Validator { return fd.validators }
 
+func (fd *InputElement) Disable() Field { fd.disabled = true; return fd }
+
 func (fd *InputElement) Render(fieldID string, messages []string) sx.Object {
 	var flb sx.ListBuilder
 	flb.Add(sx.MakeSymbol("div"))
@@ -97,12 +101,11 @@ func (fd *InputElement) Render(fieldID string, messages []string) sx.Object {
 	attrLb.Add(sx.Cons(sx.MakeSymbol("name"), sx.MakeString(fd.name)))
 	attrLb.Add(sx.Cons(sx.MakeSymbol("type"), sx.MakeString(fd.itype)))
 	attrLb.Add(sx.Cons(sx.MakeSymbol("value"), sx.MakeString(fd.value)))
-	if fd.autofocus {
-		attrLb.Add(sx.Cons(sx.MakeSymbol("autofocus"), sx.Nil()))
-	}
+	addBoolAttribute(&attrLb, sx.MakeSymbol("autofocus"), fd.autofocus)
+	addBoolAttribute(&attrLb, sx.MakeSymbol("disabled"), fd.disabled)
 	attrLb.ExtendBang(renderValidators(fd.validators))
-	flb.Add(sx.MakeList(sx.MakeSymbol("input"), attrLb.List()))
 
+	flb.Add(sx.MakeList(sx.MakeSymbol("input"), attrLb.List()))
 	return flb.List()
 }
 
@@ -158,6 +161,7 @@ type TextAreaElement struct {
 	cols       uint32
 	value      string
 	validators []Validator
+	disabled   bool
 }
 
 // TextAreaField creates a new text area element.
@@ -176,6 +180,7 @@ func (tae *TextAreaElement) SetValue(value string) error {
 	return nil
 }
 func (tae *TextAreaElement) Validators() []Validator { return tae.validators }
+func (tae *TextAreaElement) Disable() Field          { tae.disabled = true; return tae }
 func (tae *TextAreaElement) Render(fieldID string, messages []string) sx.Object {
 	var flb sx.ListBuilder
 	flb.Add(sx.MakeSymbol("div"))
@@ -193,6 +198,7 @@ func (tae *TextAreaElement) Render(fieldID string, messages []string) sx.Object 
 	if cols := tae.cols; cols > 0 {
 		attrLb.Add(sx.Cons(sx.MakeSymbol("cols"), sx.MakeString(fmt.Sprint(cols))))
 	}
+	addBoolAttribute(&attrLb, sx.MakeSymbol("disabled"), tae.disabled)
 	attrLb.ExtendBang(renderValidators(tae.validators))
 
 	flb.Add(sx.MakeList(sx.MakeSymbol("textarea"), attrLb.List(), sx.MakeString(tae.value)))
@@ -208,6 +214,7 @@ type SelectElement struct {
 	choices    []string
 	value      string
 	validators []Validator
+	disabled   bool
 }
 
 // TextAreaField creates a new text area element.
@@ -235,6 +242,7 @@ func (se *SelectElement) SetValue(value string) error {
 	return fmt.Errorf("no such choice: %q", value)
 }
 func (se *SelectElement) Validators() []Validator { return se.validators }
+func (se *SelectElement) Disable() Field          { se.disabled = true; return se }
 func (se *SelectElement) Render(fieldID string, messages []string) sx.Object {
 	var flb sx.ListBuilder
 	flb.Add(sx.MakeSymbol("div"))
@@ -246,6 +254,7 @@ func (se *SelectElement) Render(fieldID string, messages []string) sx.Object {
 	attrLb.Add(sxhtml.SymAttr)
 	attrLb.Add(sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)))
 	attrLb.Add(sx.Cons(sx.MakeSymbol("name"), sx.MakeString(se.name)))
+	addBoolAttribute(&attrLb, sx.MakeSymbol("disabled"), se.disabled)
 	attrLb.ExtendBang(renderValidators(se.validators))
 
 	var wlb sx.ListBuilder
@@ -257,9 +266,7 @@ func (se *SelectElement) Render(fieldID string, messages []string) sx.Object {
 		var alb sx.ListBuilder
 		alb.Add(sxhtml.SymAttr)
 		alb.Add(sx.Cons(sx.MakeSymbol("value"), sx.MakeString(choice)))
-		if se.value == choice {
-			alb.Add(sx.Cons(sx.MakeSymbol("selected"), sx.Nil()))
-		}
+		addBoolAttribute(&alb, sx.MakeSymbol("selected"), se.value == choice)
 		wlb.Add(sx.MakeList(sx.MakeSymbol("option"), alb.List(), sx.MakeString(text)))
 	}
 
@@ -296,6 +303,12 @@ func renderMessages(messages []string) *sx.Pair {
 		))
 	}
 	return lb.List()
+}
+
+func addBoolAttribute(lb *sx.ListBuilder, sym *sx.Symbol, val bool) {
+	if val {
+		lb.Add(sx.Cons(sym, sx.Nil()))
+	}
 }
 
 func renderValidators(validators []Validator) *sx.Pair {

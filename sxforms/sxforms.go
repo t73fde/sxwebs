@@ -60,6 +60,14 @@ func (f *Form) Clear() {
 	f.messages = nil
 }
 
+// Disable the form.
+func (f *Form) Disable() *Form {
+	for _, field := range f.fields {
+		_ = field.Disable()
+	}
+	return f
+}
+
 // Messages contains all messages, as a map of field names to a list of string.
 // Messages for the whole form will use the empty string as a field name.
 type Messages map[string][]string
