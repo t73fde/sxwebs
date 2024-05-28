@@ -28,7 +28,7 @@ type Field interface {
 	Clear()
 	SetValue(string) error
 	Validators() []Validator
-	Render(string) sx.Object
+	Render(string, []string) sx.Object
 }
 
 // InputField represents a HTTP <input> field.
@@ -41,17 +41,25 @@ type InputField struct {
 	autofocus  bool
 }
 
+// Constants for InputField.itype
+const (
+	itypeDate     = "date"
+	itypePassword = "password"
+	itypeSubmit   = "submit"
+	itypeText     = "text"
+)
+
 func (fd *InputField) Name() string  { return fd.name }
 func (fd *InputField) Label() string { return fd.label }
 func (fd *InputField) Value() string {
-	if fd.itype == "submit" {
+	if fd.itype == itypeSubmit {
 		return ""
 	}
 	return fd.value
 }
 
 func (fd *InputField) Clear() {
-	if fd.itype != "submit" {
+	if fd.itype != itypeSubmit {
 		fd.value = ""
 	}
 }
@@ -64,7 +72,7 @@ const (
 func (fd *InputField) SetValue(value string) error {
 	fd.value = value
 	switch fd.itype {
-	case "date":
+	case itypeDate:
 		if _, err := time.Parse(htmlDateLayout, value); err != nil {
 			return err
 		}
@@ -73,22 +81,49 @@ func (fd *InputField) SetValue(value string) error {
 }
 
 func (fd *InputField) Validators() []Validator { return fd.validators }
-func (fd *InputField) Render(fieldID string) sx.Object {
-	var lb sx.ListBuilder
-	lb.Add(sxhtml.SymAttr)
-	lb.Add(sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)))
-	lb.Add(sx.Cons(sx.MakeSymbol("name"), sx.MakeString(fd.name)))
-	lb.Add(sx.Cons(sx.MakeSymbol("type"), sx.MakeString(fd.itype)))
-	lb.Add(sx.Cons(sx.MakeSymbol("value"), sx.MakeString(fd.value)))
+
+func (fd *InputField) Render(fieldID string, messages []string) sx.Object {
+	var flb sx.ListBuilder
+	flb.Add(sx.MakeSymbol("div"))
+	if label := fd.label; label != "" {
+		flb.Add(sx.MakeList(
+			sx.MakeSymbol("label"),
+			sx.MakeList(
+				sxhtml.SymAttr,
+				sx.Cons(sx.MakeSymbol("for"), sx.MakeString(fieldID)),
+			),
+			sx.MakeString(label),
+		))
+	}
+
+	for _, msg := range messages {
+		flb.Add(sx.MakeList(
+			sx.MakeSymbol("span"),
+			sx.MakeList(
+				sxhtml.SymAttr,
+				sx.Cons(sx.MakeSymbol("class"), sx.MakeString("message")),
+			),
+			sx.MakeString(msg),
+		))
+	}
+
+	var wlb sx.ListBuilder
+	wlb.Add(sxhtml.SymAttr)
+	wlb.Add(sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)))
+	wlb.Add(sx.Cons(sx.MakeSymbol("name"), sx.MakeString(fd.name)))
+	wlb.Add(sx.Cons(sx.MakeSymbol("type"), sx.MakeString(fd.itype)))
+	wlb.Add(sx.Cons(sx.MakeSymbol("value"), sx.MakeString(fd.value)))
 	if fd.autofocus {
-		lb.Add(sx.Cons(sx.MakeSymbol("autofocus"), sx.Nil()))
+		wlb.Add(sx.Cons(sx.MakeSymbol("autofocus"), sx.Nil()))
 	}
 	for _, validator := range fd.validators {
 		if valAttrs := validator.Attributes(); valAttrs != nil {
-			lb.ExtendBang(valAttrs)
+			wlb.ExtendBang(valAttrs)
 		}
 	}
-	return sx.MakeList(sx.MakeSymbol("input"), lb.List())
+	flb.Add(sx.MakeList(sx.MakeSymbol("input"), wlb.List()))
+
+	return flb.List()
 }
 
 // SetAutofocus for the field.
@@ -97,7 +132,7 @@ func (fd *InputField) SetAutofocus() *InputField { fd.autofocus = true; return f
 // TextField builds a new text field.
 func TextField(name, label string, validators ...Validator) *InputField {
 	return &InputField{
-		itype:      "text",
+		itype:      itypeText,
 		name:       name,
 		label:      label,
 		validators: validators,
@@ -107,7 +142,7 @@ func TextField(name, label string, validators ...Validator) *InputField {
 // DateField builds a new field to enter dates.
 func DateField(name, label string, validators ...Validator) *InputField {
 	return &InputField{
-		itype:      "date",
+		itype:      itypeDate,
 		name:       name,
 		label:      label,
 		validators: validators,
@@ -117,7 +152,7 @@ func DateField(name, label string, validators ...Validator) *InputField {
 // PasswordField builds a new password field.
 func PasswordField(name, label string, validators ...Validator) *InputField {
 	return &InputField{
-		itype:      "password",
+		itype:      itypePassword,
 		name:       name,
 		label:      label,
 		validators: validators,
@@ -127,7 +162,7 @@ func PasswordField(name, label string, validators ...Validator) *InputField {
 // SubmitField builds a new submit field.
 func SubmitField(name, value string) *InputField {
 	return &InputField{
-		itype: "submit",
+		itype: itypeSubmit,
 		name:  name,
 		value: value,
 	}

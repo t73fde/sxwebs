@@ -196,33 +196,7 @@ func (f *Form) Render() sx.Object {
 	))
 	for _, field := range f.fields {
 		fieldID := field.Name()
-
-		var flb sx.ListBuilder
-		flb.Add(sx.MakeSymbol("div"))
-		if label := field.Label(); label != "" {
-			flb.Add(sx.MakeList(
-				sx.MakeSymbol("label"),
-				sx.MakeList(
-					sxhtml.SymAttr,
-					sx.Cons(sx.MakeSymbol("for"), sx.MakeString(fieldID)),
-				),
-				sx.MakeString(label),
-			))
-		}
-
-		for _, msg := range f.messages[field.Name()] {
-			flb.Add(sx.MakeList(
-				sx.MakeSymbol("span"),
-				sx.MakeList(
-					sxhtml.SymAttr,
-					sx.Cons(sx.MakeSymbol("class"), sx.MakeString("message")),
-				),
-				sx.MakeString(msg),
-			))
-		}
-
-		flb.Add(field.Render(fieldID))
-		lb.Add(flb.List())
+		lb.Add(field.Render(fieldID, f.messages[field.Name()]))
 	}
 	return lb.List()
 }
