@@ -63,7 +63,7 @@ func (f *Form) Clear() {
 // Disable the form.
 func (f *Form) Disable() *Form {
 	for _, field := range f.fields {
-		_ = field.Disable()
+		field.Disable()
 	}
 	return f
 }
@@ -193,8 +193,8 @@ func (f *Form) IsValid() bool {
 // Messages return the map of error messages, from an earlier validation.
 func (f *Form) Messages() Messages { return f.messages }
 
-// Render the form as an sx.Object.
-func (f *Form) Render() sx.Object {
+// Render the form as an sx list.
+func (f *Form) Render() *sx.Pair {
 	var lb sx.ListBuilder
 	lb.Add(sx.MakeSymbol("form"))
 	lb.Add(sx.MakeList(
@@ -202,9 +202,25 @@ func (f *Form) Render() sx.Object {
 		sx.Cons(sx.MakeSymbol("action"), sx.MakeString(f.action)),
 		sx.Cons(sx.MakeSymbol("method"), sx.MakeString(f.method)),
 	))
+	var submitLb sx.ListBuilder
 	for _, field := range f.fields {
-		fieldID := field.Name()
+		fieldID := f.calcFieldID(field)
+		if submitField, isSubmit := field.(*SubmitElement); isSubmit {
+			if submitLb.IsEmpty() {
+				submitLb.Add(sx.MakeSymbol("div"))
+			}
+			submitLb.Add(submitField.Render(fieldID, nil))
+			continue
+		}
+		if submitList := submitLb.List(); submitList != nil {
+			lb.Add(submitList)
+		}
 		lb.Add(field.Render(fieldID, f.messages[field.Name()]))
+	}
+	if submitList := submitLb.List(); submitList != nil {
+		lb.Add(submitList)
 	}
 	return lb.List()
 }
+
+func (*Form) calcFieldID(field Field) string { return field.Name() }

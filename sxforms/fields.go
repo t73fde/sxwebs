@@ -28,8 +28,8 @@ type Field interface {
 	Clear()
 	SetValue(string) error
 	Validators() []Validator
-	Disable() Field
-	Render(string, []string) sx.Object
+	Disable()
+	Render(string, []string) *sx.Pair
 }
 
 // ----- <input ...> fields
@@ -49,23 +49,12 @@ type InputElement struct {
 const (
 	itypeDate     = "date"
 	itypePassword = "password"
-	itypeSubmit   = "submit"
 	itypeText     = "text"
 )
 
-func (fd *InputElement) Name() string { return fd.name }
-func (fd *InputElement) Value() string {
-	if fd.itype == itypeSubmit {
-		return ""
-	}
-	return fd.value
-}
-
-func (fd *InputElement) Clear() {
-	if fd.itype != itypeSubmit {
-		fd.value = ""
-	}
-}
+func (fd *InputElement) Name() string  { return fd.name }
+func (fd *InputElement) Value() string { return fd.value }
+func (fd *InputElement) Clear()        { fd.value = "" }
 
 // Time layouts of data coming from HTML forms
 const (
@@ -85,9 +74,9 @@ func (fd *InputElement) SetValue(value string) error {
 
 func (fd *InputElement) Validators() []Validator { return fd.validators }
 
-func (fd *InputElement) Disable() Field { fd.disabled = true; return fd }
+func (fd *InputElement) Disable() { fd.disabled = true }
 
-func (fd *InputElement) Render(fieldID string, messages []string) sx.Object {
+func (fd *InputElement) Render(fieldID string, messages []string) *sx.Pair {
 	var flb sx.ListBuilder
 	flb.Add(sx.MakeSymbol("div"))
 	if label := renderLabel(fieldID, fd.label); label != nil {
@@ -142,13 +131,40 @@ func PasswordField(name, label string, validators ...Validator) *InputElement {
 	}
 }
 
+// ----- Submit input element
+
+// SubmitElement represents an element <input type="submit" ...>
+type SubmitElement struct {
+	name     string
+	label    string
+	value    string
+	disabled bool
+}
+
 // SubmitField builds a new submit field.
-func SubmitField(name, value string) *InputElement {
-	return &InputElement{
-		itype: itypeSubmit,
+func SubmitField(name, label string) *SubmitElement {
+	return &SubmitElement{
 		name:  name,
-		value: value,
+		label: label,
 	}
+}
+
+func (se *SubmitElement) Name() string                { return se.name }
+func (se *SubmitElement) Value() string               { return se.value }
+func (se *SubmitElement) Clear()                      { se.value = "" }
+func (se *SubmitElement) SetValue(value string) error { se.value = value; return nil }
+func (se *SubmitElement) Validators() []Validator     { return nil }
+func (se *SubmitElement) Disable()                    { se.disabled = true }
+func (se *SubmitElement) Render(fieldID string, messages []string) *sx.Pair {
+	var attrLb sx.ListBuilder
+	attrLb.Add(sxhtml.SymAttr)
+	attrLb.Add(sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)))
+	attrLb.Add(sx.Cons(sx.MakeSymbol("name"), sx.MakeString(se.name)))
+	attrLb.Add(sx.Cons(sx.MakeSymbol("type"), sx.MakeString("submit")))
+	attrLb.Add(sx.Cons(sx.MakeSymbol("value"), sx.MakeString(se.label)))
+	addBoolAttribute(&attrLb, sx.MakeSymbol("disabled"), se.disabled)
+
+	return sx.MakeList(sx.MakeSymbol("input"), attrLb.List())
 }
 
 // ----- <textarea ...>...</textarea> field
@@ -180,8 +196,8 @@ func (tae *TextAreaElement) SetValue(value string) error {
 	return nil
 }
 func (tae *TextAreaElement) Validators() []Validator { return tae.validators }
-func (tae *TextAreaElement) Disable() Field          { tae.disabled = true; return tae }
-func (tae *TextAreaElement) Render(fieldID string, messages []string) sx.Object {
+func (tae *TextAreaElement) Disable()                { tae.disabled = true }
+func (tae *TextAreaElement) Render(fieldID string, messages []string) *sx.Pair {
 	var flb sx.ListBuilder
 	flb.Add(sx.MakeSymbol("div"))
 	if label := renderLabel(fieldID, tae.label); label != nil {
@@ -242,8 +258,8 @@ func (se *SelectElement) SetValue(value string) error {
 	return fmt.Errorf("no such choice: %q", value)
 }
 func (se *SelectElement) Validators() []Validator { return se.validators }
-func (se *SelectElement) Disable() Field          { se.disabled = true; return se }
-func (se *SelectElement) Render(fieldID string, messages []string) sx.Object {
+func (se *SelectElement) Disable()                { se.disabled = true }
+func (se *SelectElement) Render(fieldID string, messages []string) *sx.Pair {
 	var flb sx.ListBuilder
 	flb.Add(sx.MakeSymbol("div"))
 	if label := renderLabel(fieldID, se.label); label != nil {
