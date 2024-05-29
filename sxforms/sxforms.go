@@ -46,6 +46,13 @@ func Define(fields ...Field) *Form {
 	}
 }
 
+// Add a field.
+func (f *Form) Add(field Field) *Form {
+	f.fields = append(f.fields, field)
+	f.fieldnames[field.Name()] = field
+	return f
+}
+
 // SetAction updates the "action" URL attribute.
 func (f *Form) SetAction(action string) *Form { f.action = action; return f }
 
@@ -125,18 +132,14 @@ func (f *Form) Data() Data {
 	return data
 }
 
-// SetFormValues populates the form with the given URL values.
-func (f *Form) SetFormValues(data url.Values) bool {
+// SetData set field values accoring to the given data.
+func (f *Form) SetData(data Data) bool {
 	ok := true
-	for name, values := range data {
+	for name, value := range data {
 		field, found := f.fieldnames[name]
 		if !found {
 			// Unknown field name --> ignore
 			continue
-		}
-		value := ""
-		if len(values) > 0 {
-			value = values[0]
 		}
 		err := field.SetValue(strings.TrimSpace(value))
 		if err != nil {
@@ -145,6 +148,22 @@ func (f *Form) SetFormValues(data url.Values) bool {
 		}
 	}
 	return ok
+}
+
+// SetFormValues populates the form with the given URL values.
+func (f *Form) SetFormValues(vals url.Values) bool {
+	if len(vals) == 0 {
+		return true
+	}
+	data := make(Data, len(vals))
+	for name, values := range vals {
+		value := ""
+		if len(values) > 0 {
+			value = values[0]
+		}
+		data[name] = value
+	}
+	return f.SetData(data)
 }
 
 // ValidRequestForm populates the form with the values of the given HTTP request,
@@ -171,9 +190,6 @@ func (f *Form) ValidOnSubmit(r *http.Request) bool {
 
 // IsValid returns true if the form has been successfully validates.
 func (f *Form) IsValid() bool {
-	if len(f.messages) > 0 {
-		return false
-	}
 	var messages Messages
 	for _, field := range f.fields {
 		fieldName := field.Name()

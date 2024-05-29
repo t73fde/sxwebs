@@ -121,6 +121,9 @@ func DateField(name, label string, validators ...Validator) *InputElement {
 	}
 }
 
+// DateValue returns the date as a string suitable for a HTML date field value.
+func DateValue(t time.Time) string { return t.Format(htmlDateLayout) }
+
 // PasswordField builds a new password field.
 func PasswordField(name, label string, validators ...Validator) *InputElement {
 	return &InputElement{
