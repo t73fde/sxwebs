@@ -141,6 +141,7 @@ type SubmitElement struct {
 	name     string
 	label    string
 	value    string
+	prio     uint8
 	disabled bool
 }
 
@@ -150,6 +151,19 @@ func SubmitField(name, label string) *SubmitElement {
 		name:  name,
 		label: label,
 	}
+}
+
+// SetPriority sets the importance of the field. Only the values 0, 1, and 2
+// are allowed, with 0 being the highest priority.
+func (se *SubmitElement) SetPriority(prio uint8) *SubmitElement {
+	se.prio = min(prio, uint8(len(submitPrioClass)-1))
+	return se
+}
+
+var submitPrioClass = map[uint8]string{
+	0: "primary",
+	1: "secondary",
+	2: "tertiary",
 }
 
 func (se *SubmitElement) Name() string                { return se.name }
@@ -165,6 +179,7 @@ func (se *SubmitElement) Render(fieldID string, messages []string) *sx.Pair {
 	attrLb.Add(sx.Cons(sx.MakeSymbol("name"), sx.MakeString(se.name)))
 	attrLb.Add(sx.Cons(sx.MakeSymbol("type"), sx.MakeString("submit")))
 	attrLb.Add(sx.Cons(sx.MakeSymbol("value"), sx.MakeString(se.label)))
+	attrLb.Add(sx.Cons(sx.MakeSymbol("class"), sx.MakeString(submitPrioClass[se.prio])))
 	addBoolAttribute(&attrLb, sx.MakeSymbol("disabled"), se.disabled)
 
 	return sx.MakeList(sx.MakeSymbol("input"), attrLb.List())
@@ -238,16 +253,27 @@ type SelectElement struct {
 
 // TextAreaField creates a new text area element.
 func SelectField(name, label string, choices []string, validators ...Validator) *SelectElement {
-	if len(choices)%2 != 0 {
-		panic(fmt.Sprintf("choices must have even number of values: %v", choices))
-	}
-	return &SelectElement{
+	se := &SelectElement{
 		name:       name,
 		label:      label,
-		choices:    choices,
 		validators: validators,
 	}
+	se.SetChoices(choices)
+	return se
 }
+
+// SetChoices allows to update the choices after field creation, e.g. for
+// dynamically generated choices.
+func (se *SelectElement) SetChoices(choices []string) {
+	if len(choices) == 0 || len(choices) == 1 {
+		se.choices = nil
+	} else if len(choices)%2 != 0 {
+		se.choices = choices[0 : len(choices)-2]
+	} else {
+		se.choices = choices
+	}
+}
+
 func (se *SelectElement) Name() string  { return se.name }
 func (se *SelectElement) Value() string { return se.value }
 func (se *SelectElement) Clear()        { se.value = "" }
