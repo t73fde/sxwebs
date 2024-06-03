@@ -15,6 +15,7 @@
 package sxforms
 
 import (
+	"mime"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -135,7 +136,7 @@ func (f *Form) Data() Data {
 	return data
 }
 
-// SetData set field values accoring to the given data.
+// SetData set field values according to the given data.
 func (f *Form) SetData(data Data) bool {
 	ok := true
 	for name, value := range data {
@@ -184,11 +185,31 @@ func (f *Form) ValidOnSubmit(r *http.Request) bool {
 	if r.Method != http.MethodPost {
 		return false
 	}
-	if err := r.ParseMultipartForm(f.maxFormSize); err != nil {
+	if err := f.parseForm(r); err != nil {
 		f.messages = Messages{"": {err.Error()}}
 		return false
 	}
 	return f.SetFormValues(r.PostForm, r.MultipartForm) && f.IsValid()
+}
+
+// parseForm uses the approriate form parser, depending on the request.
+//
+// Until there is no FileElement, an ordinary ParseForm is suffcient.
+// When a FileElement is added, the form must use a different encoding
+// "multipart/form-data", instead of the default value
+// "application/x-www-form-urlencoded".
+func (f *Form) parseForm(r *http.Request) (err error) {
+	ct := r.Header.Get("Content-Type")
+	if ct != "" {
+		ct, _, err = mime.ParseMediaType(ct)
+		if err != nil {
+			return err
+		}
+	}
+	if ct == "multipart/form-data" {
+		return r.ParseMultipartForm(f.maxFormSize)
+	}
+	return r.ParseForm()
 }
 
 // IsValid returns true if the form has been successfully validates.
