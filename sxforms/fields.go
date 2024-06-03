@@ -15,6 +15,7 @@ package sxforms
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"t73f.de/r/sx"
@@ -210,7 +211,7 @@ func (tae *TextAreaElement) Name() string  { return tae.name }
 func (tae *TextAreaElement) Value() string { return tae.value }
 func (tae *TextAreaElement) Clear()        { tae.value = "" }
 func (tae *TextAreaElement) SetValue(value string) error {
-	tae.value = value
+	tae.value = strings.ReplaceAll(value, "\r\n", "\n") // Unify Windows/Unix EOL handling
 	return nil
 }
 func (tae *TextAreaElement) Validators() []Validator { return tae.validators }

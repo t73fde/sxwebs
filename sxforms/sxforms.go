@@ -15,6 +15,7 @@
 package sxforms
 
 import (
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strings"
@@ -26,11 +27,12 @@ import (
 
 // Form represents a HTML form.
 type Form struct {
-	action     string
-	method     string
-	fields     []Field
-	fieldnames map[string]Field
-	messages   Messages
+	action      string
+	method      string
+	maxFormSize int64
+	fields      []Field
+	fieldnames  map[string]Field
+	messages    Messages
 }
 
 // Define builds a new form.
@@ -40,9 +42,10 @@ func Define(fields ...Field) *Form {
 		fieldnames[field.Name()] = field
 	}
 	return &Form{
-		method:     http.MethodPost,
-		fields:     fields,
-		fieldnames: fieldnames,
+		method:      http.MethodPost,
+		maxFormSize: (10 << 20), // 10 MB
+		fields:      fields,
+		fieldnames:  fieldnames,
 	}
 }
 
@@ -151,7 +154,7 @@ func (f *Form) SetData(data Data) bool {
 }
 
 // SetFormValues populates the form with the given URL values.
-func (f *Form) SetFormValues(vals url.Values) bool {
+func (f *Form) SetFormValues(vals url.Values, _ *multipart.Form) bool {
 	if len(vals) == 0 {
 		return true
 	}
@@ -172,7 +175,7 @@ func (f *Form) ValidRequestForm(r *http.Request) bool {
 	if f.method == http.MethodPost {
 		return f.ValidOnSubmit(r)
 	}
-	return f.SetFormValues(r.URL.Query()) && f.IsValid()
+	return f.SetFormValues(r.URL.Query(), nil) && f.IsValid()
 }
 
 // ValidOnSubmit return true, if the request method was "POST" and the
@@ -181,11 +184,11 @@ func (f *Form) ValidOnSubmit(r *http.Request) bool {
 	if r.Method != http.MethodPost {
 		return false
 	}
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseMultipartForm(f.maxFormSize); err != nil {
 		f.messages = Messages{"": {err.Error()}}
 		return false
 	}
-	return f.SetFormValues(r.PostForm) && f.IsValid()
+	return f.SetFormValues(r.PostForm, r.MultipartForm) && f.IsValid()
 }
 
 // IsValid returns true if the form has been successfully validates.

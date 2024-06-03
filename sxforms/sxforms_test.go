@@ -28,7 +28,7 @@ func TestSimpleRequiredForm(t *testing.T) {
 		sxforms.PasswordField("password", "Password", sxforms.Required{"password"}),
 		sxforms.SubmitField("submit", "Login"),
 	)
-	f.SetFormValues(nil)
+	f.SetFormValues(nil, nil)
 	if got := f.IsValid(); got {
 		t.Error("empty form must not validate")
 	}
@@ -44,12 +44,12 @@ func TestSimpleRequiredForm(t *testing.T) {
 		t.Errorf("expected errors: %v, but got %v", expMsgs, gotMsgs)
 	}
 
-	f.SetFormValues(url.Values{"username": nil, "password": nil})
+	f.SetFormValues(url.Values{"username": nil, "password": nil}, nil)
 	if got := f.IsValid(); got {
 		t.Error("nil form must not validate")
 	}
 
-	f.SetFormValues(url.Values{"username": {"user"}, "password": {"pass"}})
+	f.SetFormValues(url.Values{"username": {"user"}, "password": {"pass"}}, nil)
 	if got := f.IsValid(); !got {
 		t.Error("normal form must validate")
 	}
