@@ -73,7 +73,12 @@ func (fd *InputElement) SetValue(value string) error {
 	return nil
 }
 
-func (fd *InputElement) Validators() []Validator { return fd.validators }
+func (fd *InputElement) Validators() []Validator {
+	if fd.disabled {
+		return nil
+	}
+	return fd.validators
+}
 
 func (fd *InputElement) Disable() { fd.disabled = true }
 
@@ -92,8 +97,7 @@ func (fd *InputElement) Render(fieldID string, messages []string) *sx.Pair {
 	attrLb.Add(sx.Cons(sx.MakeSymbol("type"), sx.MakeString(fd.itype)))
 	attrLb.Add(sx.Cons(sx.MakeSymbol("value"), sx.MakeString(fd.value)))
 	addBoolAttribute(&attrLb, sx.MakeSymbol("autofocus"), fd.autofocus)
-	addBoolAttribute(&attrLb, sx.MakeSymbol("disabled"), fd.disabled)
-	attrLb.ExtendBang(renderValidators(fd.validators))
+	addEnablingAttributes(&attrLb, fd.disabled, fd.validators)
 
 	flb.Add(sx.MakeList(sx.MakeSymbol("input"), attrLb.List()))
 	return flb.List()
@@ -154,7 +158,7 @@ func SubmitField(name, label string) *SubmitElement {
 	}
 }
 
-// SetPriority sets the importance of the field. Only the values 0, 1, and 2
+// SetPriority sets the importance of the field. Only the values 0, 1, 2, and 3
 // are allowed, with 0 being the highest priority.
 func (se *SubmitElement) SetPriority(prio uint8) *SubmitElement {
 	se.prio = min(prio, uint8(len(submitPrioClass)-1))
@@ -165,6 +169,7 @@ var submitPrioClass = map[uint8]string{
 	0: "primary",
 	1: "secondary",
 	2: "tertiary",
+	3: "cancel",
 }
 
 func (se *SubmitElement) Name() string                { return se.name }
@@ -214,8 +219,13 @@ func (tae *TextAreaElement) SetValue(value string) error {
 	tae.value = strings.ReplaceAll(value, "\r\n", "\n") // Unify Windows/Unix EOL handling
 	return nil
 }
-func (tae *TextAreaElement) Validators() []Validator { return tae.validators }
-func (tae *TextAreaElement) Disable()                { tae.disabled = true }
+func (tae *TextAreaElement) Validators() []Validator {
+	if tae.disabled {
+		return nil
+	}
+	return tae.validators
+}
+func (tae *TextAreaElement) Disable() { tae.disabled = true }
 func (tae *TextAreaElement) Render(fieldID string, messages []string) *sx.Pair {
 	var flb sx.ListBuilder
 	flb.Add(sx.MakeSymbol("div"))
@@ -233,8 +243,7 @@ func (tae *TextAreaElement) Render(fieldID string, messages []string) *sx.Pair {
 	if cols := tae.cols; cols > 0 {
 		attrLb.Add(sx.Cons(sx.MakeSymbol("cols"), sx.MakeString(fmt.Sprint(cols))))
 	}
-	addBoolAttribute(&attrLb, sx.MakeSymbol("disabled"), tae.disabled)
-	attrLb.ExtendBang(renderValidators(tae.validators))
+	addEnablingAttributes(&attrLb, tae.disabled, tae.validators)
 
 	flb.Add(sx.MakeList(sx.MakeSymbol("textarea"), attrLb.List(), sx.MakeString(tae.value)))
 	return flb.List()
@@ -287,8 +296,13 @@ func (se *SelectElement) SetValue(value string) error {
 	}
 	return fmt.Errorf("no such choice: %q", value)
 }
-func (se *SelectElement) Validators() []Validator { return se.validators }
-func (se *SelectElement) Disable()                { se.disabled = true }
+func (se *SelectElement) Validators() []Validator {
+	if se.disabled {
+		return nil
+	}
+	return se.validators
+}
+func (se *SelectElement) Disable() { se.disabled = true }
 func (se *SelectElement) Render(fieldID string, messages []string) *sx.Pair {
 	var flb sx.ListBuilder
 	flb.Add(sx.MakeSymbol("div"))
@@ -300,8 +314,7 @@ func (se *SelectElement) Render(fieldID string, messages []string) *sx.Pair {
 	attrLb.Add(sxhtml.SymAttr)
 	attrLb.Add(sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)))
 	attrLb.Add(sx.Cons(sx.MakeSymbol("name"), sx.MakeString(se.name)))
-	addBoolAttribute(&attrLb, sx.MakeSymbol("disabled"), se.disabled)
-	attrLb.ExtendBang(renderValidators(se.validators))
+	addEnablingAttributes(&attrLb, se.disabled, se.validators)
 
 	var wlb sx.ListBuilder
 	wlb.Add(sx.MakeSymbol("select"))
@@ -363,4 +376,17 @@ func renderValidators(validators []Validator) *sx.Pair {
 		lb.ExtendBang(validator.Attributes())
 	}
 	return lb.List()
+}
+
+// addEnablingAttributes adds some attributes, depending whether the field is
+// disabled or not. If it is disabled, the "disabled" attribute will be added,
+// and no validator attributes are added too.
+// Otherwise, the field is enable and therefore the attributes of an validator
+// will be added.
+func addEnablingAttributes(lb *sx.ListBuilder, disabled bool, validators []Validator) {
+	if disabled {
+		lb.Add(sx.Cons(sx.MakeSymbol("disabled"), sx.Nil()))
+	} else {
+		lb.ExtendBang(renderValidators(validators))
+	}
 }
