@@ -28,7 +28,7 @@ type Field interface {
 	Value() string
 	Clear()
 	SetValue(string) error
-	Validators() []Validator
+	Validators() Validators
 	Disable()
 	Render(string, []string) *sx.Pair
 }
@@ -41,7 +41,7 @@ type InputElement struct {
 	name       string
 	label      string
 	value      string
-	validators []Validator
+	validators Validators
 	autofocus  bool
 	disabled   bool
 }
@@ -66,14 +66,16 @@ func (fd *InputElement) SetValue(value string) error {
 	fd.value = value
 	switch fd.itype {
 	case itypeDate:
-		if _, err := time.Parse(htmlDateLayout, value); err != nil {
-			return err
+		if value != "" {
+			if _, err := time.Parse(htmlDateLayout, value); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
-func (fd *InputElement) Validators() []Validator {
+func (fd *InputElement) Validators() Validators {
 	if fd.disabled {
 		return nil
 	}
@@ -85,7 +87,7 @@ func (fd *InputElement) Disable() { fd.disabled = true }
 func (fd *InputElement) Render(fieldID string, messages []string) *sx.Pair {
 	var flb sx.ListBuilder
 	flb.Add(sx.MakeSymbol("div"))
-	if label := renderLabel(fieldID, fd.label); label != nil {
+	if label := renderLabel(fd, fieldID, fd.label); label != nil {
 		flb.Add(label)
 	}
 	flb.ExtendBang(renderMessages(messages))
@@ -176,7 +178,7 @@ func (se *SubmitElement) Name() string                { return se.name }
 func (se *SubmitElement) Value() string               { return se.value }
 func (se *SubmitElement) Clear()                      { se.value = "" }
 func (se *SubmitElement) SetValue(value string) error { se.value = value; return nil }
-func (se *SubmitElement) Validators() []Validator     { return nil }
+func (se *SubmitElement) Validators() Validators      { return nil }
 func (se *SubmitElement) Disable()                    { se.disabled = true }
 func (se *SubmitElement) Render(fieldID string, messages []string) *sx.Pair {
 	var attrLb sx.ListBuilder
@@ -200,7 +202,7 @@ type TextAreaElement struct {
 	rows       uint32
 	cols       uint32
 	value      string
-	validators []Validator
+	validators Validators
 	disabled   bool
 }
 
@@ -219,7 +221,7 @@ func (tae *TextAreaElement) SetValue(value string) error {
 	tae.value = strings.ReplaceAll(value, "\r\n", "\n") // Unify Windows/Unix EOL handling
 	return nil
 }
-func (tae *TextAreaElement) Validators() []Validator {
+func (tae *TextAreaElement) Validators() Validators {
 	if tae.disabled {
 		return nil
 	}
@@ -229,7 +231,7 @@ func (tae *TextAreaElement) Disable() { tae.disabled = true }
 func (tae *TextAreaElement) Render(fieldID string, messages []string) *sx.Pair {
 	var flb sx.ListBuilder
 	flb.Add(sx.MakeSymbol("div"))
-	if label := renderLabel(fieldID, tae.label); label != nil {
+	if label := renderLabel(tae, fieldID, tae.label); label != nil {
 		flb.Add(label)
 	}
 	flb.ExtendBang(renderMessages(messages))
@@ -257,7 +259,7 @@ type SelectElement struct {
 	label      string
 	choices    []string
 	value      string
-	validators []Validator
+	validators Validators
 	disabled   bool
 }
 
@@ -296,7 +298,7 @@ func (se *SelectElement) SetValue(value string) error {
 	}
 	return fmt.Errorf("no such choice: %q", value)
 }
-func (se *SelectElement) Validators() []Validator {
+func (se *SelectElement) Validators() Validators {
 	if se.disabled {
 		return nil
 	}
@@ -306,7 +308,7 @@ func (se *SelectElement) Disable() { se.disabled = true }
 func (se *SelectElement) Render(fieldID string, messages []string) *sx.Pair {
 	var flb sx.ListBuilder
 	flb.Add(sx.MakeSymbol("div"))
-	if label := renderLabel(fieldID, se.label); label != nil {
+	if label := renderLabel(se, fieldID, se.label); label != nil {
 		flb.Add(label)
 	}
 	flb.ExtendBang(renderMessages(messages))
@@ -335,18 +337,21 @@ func (se *SelectElement) Render(fieldID string, messages []string) *sx.Pair {
 
 // ----- General utility functions for rendering etc.
 
-func renderLabel(fieldID, label string) *sx.Pair {
+func renderLabel(field Field, fieldID, label string) *sx.Pair {
 	if label == "" {
 		return nil
 	}
-	return sx.MakeList(
-		sx.MakeSymbol("label"),
-		sx.MakeList(
-			sxhtml.SymAttr,
-			sx.Cons(sx.MakeSymbol("for"), sx.MakeString(fieldID)),
-		),
-		sx.MakeString(label),
-	)
+	var lb sx.ListBuilder
+	lb.Add(sx.MakeSymbol("label"))
+	lb.Add(sx.MakeList(
+		sxhtml.SymAttr,
+		sx.Cons(sx.MakeSymbol("for"), sx.MakeString(fieldID)),
+	))
+	lb.Add(sx.MakeString(label))
+	if field.Validators().HasRequired() {
+		lb.Add(sx.MakeString("*"))
+	}
+	return lb.List()
 }
 
 func renderMessages(messages []string) *sx.Pair {

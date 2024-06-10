@@ -15,6 +15,7 @@
 package sxforms
 
 import (
+	"fmt"
 	"mime"
 	"mime/multipart"
 	"net/http"
@@ -57,6 +58,14 @@ func (f *Form) Add(field Field) *Form {
 	return f
 }
 
+// Field return the field with the given name, or nil.
+func (f *Form) Field(name string) (Field, error) {
+	if field, found := f.fieldnames[name]; found {
+		return field, nil
+	}
+	return nil, fmt.Errorf("no such field: %v", name)
+}
+
 // SetAction updates the "action" URL attribute.
 func (f *Form) SetAction(action string) *Form { f.action = action; return f }
 
@@ -95,7 +104,7 @@ func (m Messages) Add(fieldName, message string) Messages {
 // Data contains all form data, as a map of field names to field values.
 type Data map[string]string
 
-// Get string data of a field. Return empty string for unknwon field.
+// Get string data of a field. Return empty string for unknown field.
 func (d Data) Get(fieldName string) string {
 	if len(d) == 0 {
 		return ""
@@ -218,8 +227,10 @@ func (f *Form) IsValid() bool {
 	for _, field := range f.fields {
 		fieldName := field.Name()
 		for _, validator := range field.Validators() {
-			if err := validator.Check(field); err != nil {
-				messages = messages.Add(fieldName, err.Error())
+			if err := validator.Check(f, field); err != nil {
+				if errMsg := err.Error(); errMsg != "" {
+					messages = messages.Add(fieldName, errMsg)
+				}
 				if _, isStop := err.(StopValidationError); isStop {
 					break
 				}

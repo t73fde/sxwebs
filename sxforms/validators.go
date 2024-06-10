@@ -13,15 +13,32 @@
 
 package sxforms
 
-import "t73f.de/r/sx"
+import (
+	"fmt"
+
+	"t73f.de/r/sx"
+)
 
 // Validator is used to check if a field value is valid.
 // In addition, it supports field rendering by adding HTML form field attributes.
 type Validator interface {
-	Check(Field) error
+	Check(*Form, Field) error
 
 	// Attributes contain additional HTML attributes for a field.
 	Attributes() *sx.Pair
+}
+
+// Validators is a sequence of Validator.
+type Validators []Validator
+
+// HasRequired returns true, if there is at least the Required validator.
+func (vs Validators) HasRequired() bool {
+	for _, v := range vs {
+		if _, ok := v.(Required); ok {
+			return true
+		}
+	}
+	return false
 }
 
 // ValidationError is an error that wraps a validator error message that should
@@ -38,7 +55,7 @@ func (sve StopValidationError) Error() string { return string(sve) }
 // Required is a validator that checks if data is available.
 type Required struct{ Message string }
 
-func (ir Required) Check(field Field) error {
+func (ir Required) Check(_ *Form, field Field) error {
 	if field.Value() != "" {
 		return nil
 	}
@@ -51,3 +68,134 @@ func (ir Required) Check(field Field) error {
 func (Required) Attributes() *sx.Pair {
 	return sx.MakeList(sx.Cons(sx.MakeSymbol("required"), sx.Nil()))
 }
+
+// Optional is a validator that stops all further validation, if field has no value.
+type Optional struct{}
+
+func (Optional) Check(_ *Form, field Field) error {
+	if field.Value() != "" {
+		return nil
+	}
+	return StopValidationError("")
+}
+func (Optional) Attributes() *sx.Pair { return nil }
+
+// StringLess performs a string comparison with the given field.
+func StringLess(value string, msg string) Validator {
+	return &stringCompare{value: value, op: -2, message: msg}
+}
+
+// StringLessEqual performs a string comparison with the given field.
+func StringLessEqual(value string, msg string) Validator {
+	return &stringCompare{value: value, op: -1, message: msg}
+}
+
+// StringEqual performs a string comparison with the given field.
+func StringEqual(value string, msg string) Validator {
+	return &stringCompare{value: value, op: 0, message: msg}
+}
+
+// StringGreaterEqual performs a string comparison with the given field.
+func StringGreaterEqual(value string, msg string) Validator {
+	return &stringCompare{value: value, op: 1, message: msg}
+}
+
+// StringGreater performs a string comparison with the given field.
+func StringGreater(value string, msg string) Validator {
+	return &stringCompare{value: value, op: 2, message: msg}
+}
+
+// stringCompare validates that the current field by comparing with the given one.
+// Comparison is done via string comparison.
+type stringCompare struct {
+	value   string
+	op      int
+	message string
+}
+
+func (fsc *stringCompare) Check(f *Form, field Field) error {
+	return compareFieldValues(fsc.op, field.Value(), fsc.value, fsc.message)
+}
+
+func (*stringCompare) Attributes() *sx.Pair { return nil }
+
+func compareFieldValues(op int, value, other string, msg string) error {
+	var msgOp string
+	switch op {
+	case -2:
+		if value < other {
+			return nil
+		}
+		msgOp = "≥"
+	case -1:
+		if value <= other {
+			return nil
+		}
+		msgOp = ">"
+	case 0:
+		if value == other {
+			return nil
+		}
+		msgOp = "≠"
+	case 1:
+		if value >= other {
+			return nil
+		}
+		msgOp = "<"
+	case 2:
+		if value > other {
+			return nil
+		}
+		msgOp = "≤"
+	default:
+		return fmt.Errorf("comparison value not expected: %d", op)
+	}
+	if msg != "" {
+		return ValidationError(msg)
+	}
+	return ValidationError(fmt.Sprintf("%v %s %v", value, msgOp, other))
+
+}
+
+// FieldStringLess performs a string comparison with the given field.
+func FieldStringLess(name string, msg string) Validator {
+	return &fieldStringCompare{fieldname: name, op: -2, message: msg}
+}
+
+// FieldStringLessEqual performs a string comparison with the given field.
+func FieldStringLessEqual(name string, msg string) Validator {
+	return &fieldStringCompare{fieldname: name, op: -1, message: msg}
+}
+
+// FieldStringEqual performs a string comparison with the given field.
+func FieldStringEqual(name string, msg string) Validator {
+	return &fieldStringCompare{fieldname: name, op: 0, message: msg}
+}
+
+// FieldStringGreaterEqual performs a string comparison with the given field.
+func FieldStringGreaterEqual(name string, msg string) Validator {
+	return &fieldStringCompare{fieldname: name, op: 1, message: msg}
+}
+
+// FieldStringGreater performs a string comparison with the given field.
+func FieldStringGreater(name string, msg string) Validator {
+	return &fieldStringCompare{fieldname: name, op: 2, message: msg}
+}
+
+// fieldStringCompare validates that the current field by comparing with the given one.
+// Comparison is done via string comparison.
+type fieldStringCompare struct {
+	fieldname string
+	op        int
+	message   string
+}
+
+func (fsc *fieldStringCompare) Check(f *Form, field Field) error {
+	other, err := f.Field(fsc.fieldname)
+	if err != nil {
+		return err
+	}
+	return compareFieldValues(fsc.op, field.Value(), other.Value(), fsc.message)
+}
+
+func (*fieldStringCompare) Attributes() *sx.Pair { return nil }
