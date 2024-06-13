@@ -327,6 +327,7 @@ func (se *SelectElement) Render(fieldID string, messages []string) *sx.Pair {
 		var alb sx.ListBuilder
 		alb.Add(sxhtml.SymAttr)
 		alb.Add(sx.Cons(sx.MakeSymbol("value"), sx.MakeString(choice)))
+		addBoolAttribute(&alb, sx.MakeSymbol("disabled"), choice == "")
 		addBoolAttribute(&alb, sx.MakeSymbol("selected"), se.value == choice)
 		wlb.Add(sx.MakeList(sx.MakeSymbol("option"), alb.List(), sx.MakeString(text)))
 	}
