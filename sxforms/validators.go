@@ -105,7 +105,7 @@ func (mml *MinMaxLength) Check(_ *Form, field Field) error {
 }
 
 func (mml *MinMaxLength) Attributes() (result *sx.Pair) {
-	if minl := mml.MaxLength; minl > 0 {
+	if minl := mml.MinLength; minl > 0 {
 		result = result.Cons(sx.Cons(sx.MakeSymbol("minlength"), sx.MakeString(strconv.Itoa(minl))))
 	}
 	if maxl := mml.MaxLength; maxl > 0 {
