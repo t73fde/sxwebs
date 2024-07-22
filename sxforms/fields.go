@@ -49,6 +49,7 @@ type InputElement struct {
 // Constants for InputField.itype
 const (
 	itypeDate     = "date"
+	itypeEmail    = "email"
 	itypePassword = "password"
 	itypeText     = "text"
 )
@@ -135,6 +136,16 @@ func DateValue(t time.Time) string { return t.Format(htmlDateLayout) }
 func PasswordField(name, label string, validators ...Validator) *InputElement {
 	return &InputElement{
 		itype:      itypePassword,
+		name:       name,
+		label:      label,
+		validators: validators,
+	}
+}
+
+// EmailField builds a new e-mail field.
+func EmailField(name, label string, validators ...Validator) *InputElement {
+	return &InputElement{
+		itype:      itypeEmail,
 		name:       name,
 		label:      label,
 		validators: validators,
