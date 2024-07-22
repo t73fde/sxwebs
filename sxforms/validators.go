@@ -15,6 +15,8 @@ package sxforms
 
 import (
 	"fmt"
+	"strconv"
+	"unicode/utf8"
 
 	"t73f.de/r/sx"
 )
@@ -52,6 +54,8 @@ type StopValidationError string
 
 func (sve StopValidationError) Error() string { return string(sve) }
 
+// ----- Required: field must have a value.
+
 // Required is a validator that checks if data is available.
 type Required struct{ Message string }
 
@@ -69,6 +73,8 @@ func (Required) Attributes() *sx.Pair {
 	return sx.MakeList(sx.Cons(sx.MakeSymbol("required"), sx.Nil()))
 }
 
+// ----- Optional: field must not have a value, could be missing.
+
 // Optional is a validator that stops all further validation, if field has no value.
 type Optional struct{}
 
@@ -79,6 +85,36 @@ func (Optional) Check(_ *Form, field Field) error {
 	return StopValidationError("")
 }
 func (Optional) Attributes() *sx.Pair { return nil }
+
+// ----- MinMaxLength: field must have a value of a specific length.
+
+// MinMaxLength is a validator that checks for a length.
+type MinMaxLength struct {
+	MinLength int
+	MaxLength int
+}
+
+func (mml *MinMaxLength) Check(_ *Form, field Field) error {
+	if minl, curl := mml.MinLength, utf8.RuneCountInString(field.Value()); minl > 0 && curl < minl {
+		return ValidationError(fmt.Sprintf("minimum length of %s is %d, but got %d", field.Name(), minl, curl))
+	}
+	if maxl, curl := mml.MaxLength, utf8.RuneCountInString(field.Value()); maxl > 0 && curl > maxl {
+		return ValidationError(fmt.Sprintf("maximum length of %s is %d, but got %d", field.Name(), maxl, curl))
+	}
+	return nil
+}
+
+func (mml *MinMaxLength) Attributes() (result *sx.Pair) {
+	if minl := mml.MaxLength; minl > 0 {
+		result = result.Cons(sx.Cons(sx.MakeSymbol("minlength"), sx.MakeString(strconv.Itoa(minl))))
+	}
+	if maxl := mml.MaxLength; maxl > 0 {
+		result = result.Cons(sx.Cons(sx.MakeSymbol("maxlength"), sx.MakeString(strconv.Itoa(maxl))))
+	}
+	return result
+}
+
+// ----- StringXXX: field must have a value that compares to a specific constant.
 
 // StringLess performs a string comparison with the given field.
 func StringLess(value string, msg string) Validator {
@@ -114,12 +150,12 @@ type stringCompare struct {
 }
 
 func (fsc *stringCompare) Check(f *Form, field Field) error {
-	return compareFieldValues(fsc.op, field.Value(), fsc.value, fsc.message)
+	return compareStringValues(fsc.op, field.Value(), fsc.value, fsc.message)
 }
 
 func (*stringCompare) Attributes() *sx.Pair { return nil }
 
-func compareFieldValues(op int, value, other string, msg string) error {
+func compareStringValues(op int, value, other string, msg string) error {
 	var msgOp string
 	switch op {
 	case -2:
@@ -156,6 +192,8 @@ func compareFieldValues(op int, value, other string, msg string) error {
 	return ValidationError(fmt.Sprintf("%v %s %v", value, msgOp, other))
 
 }
+
+// ----- FieldStringXXX: field must have a value that is compared to another field.
 
 // FieldStringLess performs a string comparison with the given field.
 func FieldStringLess(name string, msg string) Validator {
@@ -195,7 +233,7 @@ func (fsc *fieldStringCompare) Check(f *Form, field Field) error {
 	if err != nil {
 		return err
 	}
-	return compareFieldValues(fsc.op, field.Value(), other.Value(), fsc.message)
+	return compareStringValues(fsc.op, field.Value(), other.Value(), fsc.message)
 }
 
 func (*fieldStringCompare) Attributes() *sx.Pair { return nil }
