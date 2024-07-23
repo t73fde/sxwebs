@@ -183,23 +183,65 @@ func (f *Form) SetFormValues(vals url.Values, _ *multipart.Form) bool {
 // and validates them.
 func (f *Form) ValidRequestForm(r *http.Request) bool {
 	if f.method == http.MethodPost {
-		return f.ValidOnSubmit(r)
+		sr, _ := f.OnSubmit(r)
+		return sr == SubmitValidData
 	}
 	return f.SetFormValues(r.URL.Query(), nil) && f.IsValid()
 }
 
-// ValidOnSubmit return true, if the request method was "POST" and the
-// populated values of the request were successully validated.
-func (f *Form) ValidOnSubmit(r *http.Request) bool {
+// OnSubmit consumes a POST request, parses incoming data into the form and
+// validates that data. It returns a result, depending on the request, plus
+// the name of the submit field, which causes the request.
+func (f *Form) OnSubmit(r *http.Request) (SubmitResult, string) {
 	if r.Method != http.MethodPost {
-		return false
+		return SubmitNoData, ""
 	}
 	if err := f.parseForm(r); err != nil {
 		f.messages = Messages{"": {err.Error()}}
-		return false
+		return SubmitInvalidData, ""
 	}
-	return f.SetFormValues(r.PostForm, r.MultipartForm) && f.IsValid()
+
+	var submitName string
+	for name, values := range r.PostForm {
+		if field, found := f.fieldnames[name]; found && len(values) > 0 {
+			if se, isSubmit := field.(*SubmitElement); isSubmit {
+				if submitName != "" {
+					f.messages = Messages{
+						"": {fmt.Sprintf("multiple submit fields: %s, %s", submitName, name)},
+					}
+					return SubmitInvalidData, submitName
+				}
+				if se.isCancel {
+					return SubmitCancel, name
+				}
+				submitName = name
+			}
+		}
+	}
+
+	if f.SetFormValues(r.PostForm, r.MultipartForm) && f.IsValid() {
+		return SubmitValidData, submitName
+	}
+	return SubmitInvalidData, submitName
 }
+
+// SubmitResult encodes the possible outcomes of a form submit.
+type SubmitResult int
+
+// Constants for SubmitResult
+const (
+	// No data was received
+	SubmitNoData SubmitResult = iota
+
+	// Data received, but form was cancelled
+	SubmitCancel
+
+	// Data received, but it is not valid.
+	SubmitInvalidData
+
+	// Valid data received.
+	SubmitValidData
+)
 
 // parseForm uses the approriate form parser, depending on the request.
 //

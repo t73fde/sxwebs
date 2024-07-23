@@ -161,6 +161,7 @@ type SubmitElement struct {
 	value    string
 	prio     uint8
 	disabled bool
+	isCancel bool
 }
 
 // SubmitField builds a new submit field.
@@ -183,6 +184,13 @@ var submitPrioClass = map[uint8]string{
 	1: "secondary",
 	2: "tertiary",
 	3: "cancel",
+}
+
+// MarkCancel marks the submit field as an action that disables form
+// validation, if this field causes the form to be sent.
+func (se *SubmitElement) MarkCancel() *SubmitElement {
+	se.isCancel = true
+	return se
 }
 
 func (se *SubmitElement) Name() string                { return se.name }
