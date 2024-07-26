@@ -233,6 +233,14 @@ func TextAreaField(name, label string, validators ...Validator) *TextAreaElement
 		validators: validators,
 	}
 }
+func (tae *TextAreaElement) SetRows(rows uint32) *TextAreaElement {
+	tae.rows = rows
+	return tae
+}
+func (tae *TextAreaElement) SetCols(cols uint32) *TextAreaElement {
+	tae.cols = cols
+	return tae
+}
 func (tae *TextAreaElement) Name() string  { return tae.name }
 func (tae *TextAreaElement) Value() string { return tae.value }
 func (tae *TextAreaElement) Clear()        { tae.value = "" }
