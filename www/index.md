@@ -6,6 +6,7 @@ web applications in [Go](https://go.dev/).
 * [sxhtml](/dir?name=sxhtml): Generate HTML from S-Expressions
 * [sxhttp](/dir?name=sxhttp): Encapsulates net/http definitions as Sx objects
 * [sxforms](/dir?name=sxforms): HTML form rendering and validation, similar to [WTForms](https://wtforms.readthedocs.io/)
+* [sxsite](/dir?name=sxsite): Sx code to work with [Webs/site](https://t73f.de/r/webs)
 
 ## Use instructions
 
