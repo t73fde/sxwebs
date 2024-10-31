@@ -24,9 +24,9 @@ import (
 	"t73f.de/r/webs/urlbuilder"
 )
 
-// MakeUrlForBuiltin returns a builtin that provides the (url-for node-id args...)
+// MakeURLForBuiltin returns a builtin that provides the (url-for node-id args...)
 // function. It is specific to a webs/site.Site.
-func MakeUrlForBuiltin(st *site.Site) *sxeval.Builtin {
+func MakeURLForBuiltin(st *site.Site) *sxeval.Builtin {
 	return &sxeval.Builtin{
 		Name:     "url-for",
 		MinArity: 1,
@@ -74,9 +74,9 @@ func builderToSx(nodeID sx.Object, ub *urlbuilder.URLBuilder) (sx.Object, error)
 	return sx.MakeString(ub.String()), nil
 }
 
-// MakeMakeUrlBuiltin returns a builtin that provides the (make-url path...)
+// MakeMakeURLBuiltin returns a builtin that provides the (make-url path...)
 // function. It is specific to a webs/site.Site.
-func MakeMakeUrlBuiltin(st *site.Site) *sxeval.Builtin {
+func MakeMakeURLBuiltin(st *site.Site) *sxeval.Builtin {
 	return &sxeval.Builtin{
 		Name:     "make-url",
 		MinArity: 0,

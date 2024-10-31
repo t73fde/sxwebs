@@ -59,6 +59,7 @@ func (sve StopValidationError) Error() string { return string(sve) }
 // Required is a validator that checks if data is available.
 type Required struct{ Message string }
 
+// Check the given field w.r.t. to this validator.
 func (ir Required) Check(_ *Form, field Field) error {
 	if field.Value() != "" {
 		return nil
@@ -69,6 +70,7 @@ func (ir Required) Check(_ *Form, field Field) error {
 	return StopValidationError(ir.Message)
 }
 
+// Attributes returns HTML attributes as a Sx cons list.
 func (Required) Attributes() *sx.Pair {
 	return sx.MakeList(sx.Cons(sx.MakeSymbol("required"), sx.Nil()))
 }
@@ -78,12 +80,15 @@ func (Required) Attributes() *sx.Pair {
 // Optional is a validator that stops all further validation, if field has no value.
 type Optional struct{}
 
+// Check the given field w.r.t. to this validator.
 func (Optional) Check(_ *Form, field Field) error {
 	if field.Value() != "" {
 		return nil
 	}
 	return StopValidationError("")
 }
+
+// Attributes returns HTML attributes as a Sx cons list.
 func (Optional) Attributes() *sx.Pair { return nil }
 
 // ----- MinMaxLength: field must have a value of a specific length.
@@ -94,6 +99,7 @@ type MinMaxLength struct {
 	MaxLength int
 }
 
+// Check the given field w.r.t. to this validator.
 func (mml *MinMaxLength) Check(_ *Form, field Field) error {
 	if minl, curl := mml.MinLength, utf8.RuneCountInString(field.Value()); minl > 0 && curl < minl {
 		return ValidationError(fmt.Sprintf("minimum length of %s is %d, but got %d", field.Name(), minl, curl))
@@ -104,6 +110,7 @@ func (mml *MinMaxLength) Check(_ *Form, field Field) error {
 	return nil
 }
 
+// Attributes returns HTML attributes as a Sx cons list.
 func (mml *MinMaxLength) Attributes() (result *sx.Pair) {
 	if minl := mml.MinLength; minl > 0 {
 		result = result.Cons(sx.Cons(sx.MakeSymbol("minlength"), sx.MakeString(strconv.Itoa(minl))))
@@ -149,7 +156,7 @@ type stringCompare struct {
 	message string
 }
 
-func (fsc *stringCompare) Check(f *Form, field Field) error {
+func (fsc *stringCompare) Check(_ *Form, field Field) error {
 	return compareStringValues(fsc.op, field.Value(), fsc.value, fsc.message)
 }
 

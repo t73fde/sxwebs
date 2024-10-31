@@ -43,6 +43,7 @@ const (
 	nameDoctype       = "@@@@"
 )
 
+// Some often used sx symbols.
 var (
 	SymAttr          = sx.MakeSymbol(nameAttr)
 	SymCDATA         = sx.MakeSymbol(nameCDATA)
@@ -342,7 +343,7 @@ func getAttributeType(sym *sx.Symbol) attrType {
 		sym = sx.MakeSymbol(name)
 	}
 
-	if _, isUrlAttr := urlAttrs[sym.GetValue()]; isUrlAttr {
+	if _, isURLAttr := urlAttrs[sym.GetValue()]; isURLAttr {
 		return attrURL
 	}
 	if sym.IsEqual(sx.MakeSymbol("style")) {

@@ -54,15 +54,21 @@ const (
 	itypeText     = "text"
 )
 
-func (fd *InputElement) Name() string  { return fd.name }
+// Name returns the name of this element.
+func (fd *InputElement) Name() string { return fd.name }
+
+// Value returns the value of the input element.
 func (fd *InputElement) Value() string { return fd.value }
-func (fd *InputElement) Clear()        { fd.value = "" }
+
+// Clear the input element.
+func (fd *InputElement) Clear() { fd.value = "" }
 
 // Time layouts of data coming from HTML forms
 const (
 	htmlDateLayout = "2006-01-02"
 )
 
+// SetValue sets the value of this input element.
 func (fd *InputElement) SetValue(value string) error {
 	fd.value = value
 	switch fd.itype {
@@ -76,6 +82,7 @@ func (fd *InputElement) SetValue(value string) error {
 	return nil
 }
 
+// Validators returns all currently active Validators.
 func (fd *InputElement) Validators() Validators {
 	if fd.disabled {
 		return nil
@@ -83,8 +90,10 @@ func (fd *InputElement) Validators() Validators {
 	return fd.validators
 }
 
+// Disable the input element.
 func (fd *InputElement) Disable() { fd.disabled = true }
 
+// Render the form input element as SxHTML.
 func (fd *InputElement) Render(fieldID string, messages []string) *sx.Pair {
 	var flb sx.ListBuilder
 	flb.Add(sx.MakeSymbol("div"))
@@ -193,13 +202,26 @@ func (se *SubmitElement) MarkCancel() *SubmitElement {
 	return se
 }
 
-func (se *SubmitElement) Name() string                { return se.name }
-func (se *SubmitElement) Value() string               { return se.value }
-func (se *SubmitElement) Clear()                      { se.value = "" }
+// Name returns the name of this element.
+func (se *SubmitElement) Name() string { return se.name }
+
+// Value returns the value of this element.
+func (se *SubmitElement) Value() string { return se.value }
+
+// Clear the element.
+func (se *SubmitElement) Clear() { se.value = "" }
+
+// SetValue sets the value of this element.
 func (se *SubmitElement) SetValue(value string) error { se.value = value; return nil }
-func (se *SubmitElement) Validators() Validators      { return nil }
-func (se *SubmitElement) Disable()                    { se.disabled = true }
-func (se *SubmitElement) Render(fieldID string, messages []string) *sx.Pair {
+
+// Validators return the currently active validators.
+func (se *SubmitElement) Validators() Validators { return nil }
+
+// Disable the submit element.
+func (se *SubmitElement) Disable() { se.disabled = true }
+
+// Render the submit element as SxHTML.
+func (se *SubmitElement) Render(fieldID string, _ []string) *sx.Pair {
 	var attrLb sx.ListBuilder
 	attrLb.Add(sxhtml.SymAttr)
 	attrLb.Add(sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)))
@@ -233,28 +255,47 @@ func TextAreaField(name, label string, validators ...Validator) *TextAreaElement
 		validators: validators,
 	}
 }
+
+// SetRows sets the number of rows for the text area element.
 func (tae *TextAreaElement) SetRows(rows uint32) *TextAreaElement {
 	tae.rows = rows
 	return tae
 }
+
+// SetCols sets the number of columns for the text area, i.e. the number of
+// possibly visible lines.
 func (tae *TextAreaElement) SetCols(cols uint32) *TextAreaElement {
 	tae.cols = cols
 	return tae
 }
-func (tae *TextAreaElement) Name() string  { return tae.name }
+
+// Name returns the name of the text area element.
+func (tae *TextAreaElement) Name() string { return tae.name }
+
+// Value returns the value of the text area.
 func (tae *TextAreaElement) Value() string { return tae.value }
-func (tae *TextAreaElement) Clear()        { tae.value = "" }
+
+// Clear the text area.
+func (tae *TextAreaElement) Clear() { tae.value = "" }
+
+// SetValue sets the value of the text area. Sequences of '\r\n' will be replaced by '\n'.
 func (tae *TextAreaElement) SetValue(value string) error {
 	tae.value = strings.ReplaceAll(value, "\r\n", "\n") // Unify Windows/Unix EOL handling
 	return nil
 }
+
+// Validators returns the currently active validators for this text area.
 func (tae *TextAreaElement) Validators() Validators {
 	if tae.disabled {
 		return nil
 	}
 	return tae.validators
 }
+
+// Disable the text area element.
 func (tae *TextAreaElement) Disable() { tae.disabled = true }
+
+// Render the text area as SxHTML.
 func (tae *TextAreaElement) Render(fieldID string, messages []string) *sx.Pair {
 	var flb sx.ListBuilder
 	flb.Add(sx.MakeSymbol("div"))
@@ -290,7 +331,7 @@ type SelectElement struct {
 	disabled   bool
 }
 
-// TextAreaField creates a new text area element.
+// SelectField creates a new select element.
 func SelectField(name, label string, choices []string, validators ...Validator) *SelectElement {
 	se := &SelectElement{
 		name:       name,
@@ -313,9 +354,16 @@ func (se *SelectElement) SetChoices(choices []string) {
 	}
 }
 
-func (se *SelectElement) Name() string  { return se.name }
+// Name returns the element name.
+func (se *SelectElement) Name() string { return se.name }
+
+// Value returns the value of the select element.
 func (se *SelectElement) Value() string { return se.value }
-func (se *SelectElement) Clear()        { se.value = "" }
+
+// Clear the select element.
+func (se *SelectElement) Clear() { se.value = "" }
+
+// SetValue sets the value of the select element.
 func (se *SelectElement) SetValue(value string) error {
 	se.value = value
 	for i := 0; i < len(se.choices); i += 2 {
@@ -325,13 +373,19 @@ func (se *SelectElement) SetValue(value string) error {
 	}
 	return fmt.Errorf("no such choice: %q", value)
 }
+
+// Validators return the active validators for the select element.
 func (se *SelectElement) Validators() Validators {
 	if se.disabled {
 		return nil
 	}
 	return se.validators
 }
+
+// Disable the field.
 func (se *SelectElement) Disable() { se.disabled = true }
+
+// Render the select element as SxHTML.
 func (se *SelectElement) Render(fieldID string, messages []string) *sx.Pair {
 	var flb sx.ListBuilder
 	flb.Add(sx.MakeSymbol("div"))

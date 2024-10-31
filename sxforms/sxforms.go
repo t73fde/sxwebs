@@ -11,7 +11,7 @@
 // SPDX-FileCopyrightText: 2023-present Detlef Stern
 // -----------------------------------------------------------------------------
 
-// Package forms handles HTML form data.
+// Package sxforms handles HTML form data.
 package sxforms
 
 import (

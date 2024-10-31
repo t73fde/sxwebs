@@ -34,8 +34,13 @@ func MakeContext(ctx context.Context) SxContext { return SxContext{ctx} }
 // GetValue returns the context.Context value.
 func (ctx SxContext) GetValue() context.Context { return ctx.val }
 
-func (SxContext) IsNil() bool  { return false }
+// IsNil returns true for a nil value.
+func (SxContext) IsNil() bool { return false }
+
+// IsAtom returns true for an atomic value.
 func (SxContext) IsAtom() bool { return true }
+
+// IsEqual returns true if the sx content is equal to the given object.
 func (ctx SxContext) IsEqual(other sx.Object) bool {
 	if other.IsNil() {
 		return false
@@ -46,6 +51,8 @@ func (ctx SxContext) IsEqual(other sx.Object) bool {
 func (ctx SxContext) String() string {
 	return fmt.Sprintf("#<SxContext:%v>", ctx.val)
 }
+
+// GoString return the Go representation of the context.
 func (ctx SxContext) GoString() string { return ctx.String() }
 
 // GetContext returns the given sx.Object as a SxContext, if possible.
@@ -73,11 +80,19 @@ func GetBuiltinContext(arg sx.Object, pos int) (SxContext, error) {
 // SxRequest is a http.Request, seen as a Sx object.
 type SxRequest http.Request
 
+// MakeRequest creates a Sx object from a htt.Request.
 func MakeRequest(r *http.Request) *SxRequest { return (*SxRequest)(r) }
+
+// GetValue returns the underlying request object.
 func (r *SxRequest) GetValue() *http.Request { return (*http.Request)(r) }
 
+// IsNil returns true of the object id a nil value.
 func (r *SxRequest) IsNil() bool { return r == nil }
-func (*SxRequest) IsAtom() bool  { return true }
+
+// IsAtom returns true for an atomic value.
+func (*SxRequest) IsAtom() bool { return true }
+
+// IsEqual returns true if the other object is equal to this request object.
 func (r *SxRequest) IsEqual(other sx.Object) bool {
 	if r == nil {
 		return sx.IsNil(other)
@@ -91,6 +106,8 @@ func (r *SxRequest) IsEqual(other sx.Object) bool {
 func (r *SxRequest) String() string {
 	return fmt.Sprintf("#<SxRequest:%v>", r.GetValue())
 }
+
+// GoString returns the Go representation.
 func (r *SxRequest) GoString() string { return r.String() }
 
 // GetRequest returns the given sx.Object as a SxRequest, if possible.
@@ -113,6 +130,7 @@ func GetBuiltinRequest(arg sx.Object, pos int) (*SxRequest, error) {
 	return nil, fmt.Errorf("argument %d is not a http request, but %T/%v", pos+1, arg, arg)
 }
 
+// URLPath is a builtin that returns the URL path ob an request object.
 var URLPath = sxeval.Builtin{
 	Name:     "request-url-path",
 	MinArity: 1,
@@ -126,6 +144,8 @@ var URLPath = sxeval.Builtin{
 		return sx.MakeString(r.GetValue().URL.Path), nil
 	},
 }
+
+// Context is a builtin the returns the context object of an request object.
 var Context = sxeval.Builtin{
 	Name:     "request-context",
 	MinArity: 1,
@@ -145,11 +165,19 @@ var Context = sxeval.Builtin{
 // SxResponseWriter is a http.ResponseWriter, seen as a Sx object.
 type SxResponseWriter struct{ val http.ResponseWriter }
 
+// MakeResponseWriter creates an object based on a response writer.
 func MakeResponseWriter(w http.ResponseWriter) SxResponseWriter { return SxResponseWriter{w} }
-func (w SxResponseWriter) GetValue() http.ResponseWriter        { return w.val }
 
-func (SxResponseWriter) IsNil() bool  { return false }
+// GetValue returns the underlying response writer value.
+func (w SxResponseWriter) GetValue() http.ResponseWriter { return w.val }
+
+// IsNil returns true, if the object is a nil value.
+func (SxResponseWriter) IsNil() bool { return false }
+
+// IsAtom returns true if this object is an atomic object.
 func (SxResponseWriter) IsAtom() bool { return true }
+
+// IsEqual returns true, if this response writer is equal to the given object.
 func (w SxResponseWriter) IsEqual(other sx.Object) bool {
 	if sx.IsNil(other) {
 		return false
@@ -160,4 +188,6 @@ func (w SxResponseWriter) IsEqual(other sx.Object) bool {
 func (w SxResponseWriter) String() string {
 	return fmt.Sprintf("#<SxResponseWriter:%v>", w.GetValue())
 }
+
+// GoString returns the Go representation.
 func (w SxResponseWriter) GoString() string { return w.String() }
