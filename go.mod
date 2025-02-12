@@ -1,8 +1,8 @@
 module t73f.de/r/sxwebs
 
-go 1.23
+go 1.24
 
 require (
-	t73f.de/r/sx v0.0.0-20240814083626-4df0ec6454b5
-	t73f.de/r/webs v0.0.0-20241031141359-cd4f76a622cd
+	t73f.de/r/sx v0.0.0-20250212190351-f6694aacfb8b
+	t73f.de/r/webs v0.0.0-20250105160757-b6b002b44f34
 )
