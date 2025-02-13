@@ -8,25 +8,24 @@ web applications in [Go](https://go.dev/).
 * [sxforms](/dir?name=sxforms): HTML form rendering and validation, similar to [WTForms](https://wtforms.readthedocs.io/)
 * [sxsite](/dir?name=sxsite): Sx code to work with [Webs/site](https://t73f.de/r/webs)
 
-## Use instructions
+## Usage instructions
 
-If you want to import this library into your own [Go](https://go.dev/)
-software, you must execute a `go get` command. Since Go treats non-standard
-software and non-standard platforms quite badly, you must use some non-standard
-commands.
+To import this library into your own [Go](https://go.dev/) software, you need
+to run the `go get` command. Since Go does not handle non-standard software and
+platforms well, some additional steps are required.
 
-First, you must install the version control system
-[Fossil](https://fossil-scm.org), which is a superior solution compared to Git,
-in too many use cases. It is just a single executable, nothing more. Make sure,
-it is in your search path for commands.
+First, install the version control system [Fossil](https://fossil-scm.org),
+which is a superior alternative to Git in many use cases. Fossil is just a
+single executable, nothing more. Make sure it is included in your system's
+command search path.
 
-How you can execute the following Go command to retrieve a given version of
+Then, run the following Go command to retrieve a specific version of
 this library:
 
     GOVCS=t73f.de:fossil go get t73f.de/r/sxwebs@HASH
 
-where `HASH` is the hash value of the commit you want to use.
+Here, `HASH` represents the commit hash of the version you want to use.
 
-Go currently seems not to support software versions when the software is
-managed by Fossil. This explains the need for the hash value. However, this
-methods works.
+Go currently does not seem to support software versioning for projects managed
+by Fossil. This is why the hash value is required. However, this method works
+reliably.
