@@ -108,8 +108,8 @@ func (gen *Generator) WriteHTML(w io.Writer, obj sx.Object) (int, error) {
 // WriteListHTML emits HTML code for a list of s-expressions to the given writer.
 func (gen *Generator) WriteListHTML(w io.Writer, lst *sx.Pair) (int, error) {
 	enc := myEncoder{gen: gen, pr: printer{w: w}, lastWasTag: true}
-	for elem := lst; elem != nil; elem = elem.Tail() {
-		enc.generate(elem.Car())
+	for elem := range lst.Values() {
+		enc.generate(elem)
 	}
 	return enc.pr.length, enc.pr.err
 }
@@ -164,8 +164,8 @@ func (enc *myEncoder) generate(obj sx.Object) {
 }
 
 func (enc *myEncoder) generateList(lst *sx.Pair) {
-	for n := lst; n != nil; n = n.Tail() {
-		enc.generate(n.Car())
+	for obj := range lst.Values() {
+		enc.generate(obj)
 	}
 }
 
@@ -176,8 +176,8 @@ func (enc *myEncoder) writeCDATA(elems *sx.Pair) {
 }
 
 func (enc *myEncoder) writeNoEscape(elems *sx.Pair) {
-	for n := elems; n != nil; n = n.Tail() {
-		if s, isString := sx.GetString(n.Car()); isString {
+	for obj := range elems.Values() {
+		if s, isString := sx.GetString(obj); isString {
 			enc.pr.printString(s.GetValue())
 		}
 	}
@@ -185,17 +185,17 @@ func (enc *myEncoder) writeNoEscape(elems *sx.Pair) {
 
 func (enc *myEncoder) writeComment(elems *sx.Pair) {
 	enc.pr.printString("<!--")
-	for n := elems; n != nil; n = n.Tail() {
+	for obj := range elems.Values() {
 		enc.pr.printString(" ")
-		enc.printCommentObj(n.Car())
+		enc.printCommentObj(obj)
 	}
 	enc.pr.printString(" -->")
 }
 func (enc *myEncoder) writeCommentML(elems *sx.Pair) {
 	enc.pr.printString("<!--")
-	for n := elems; n != nil; n = n.Tail() {
+	for obj := range elems.Values() {
 		enc.pr.printString("\n")
-		enc.printCommentObj(n.Car())
+		enc.printCommentObj(obj)
 	}
 	enc.pr.printString("\n-->\n")
 }
@@ -242,7 +242,7 @@ func (enc *myEncoder) writeTag(sym *sx.Symbol, elems *sx.Pair) {
 }
 
 func ignoreEmptyStrings(elem *sx.Pair) *sx.Pair {
-	for node := elem; node != nil; node = node.Tail() {
+	for node := range elem.Pairs() {
 		if s, isString := sx.GetString(node.Car()); !isString || s.GetValue() != "" {
 			return node
 		}
@@ -267,8 +267,8 @@ func (enc *myEncoder) writeAttributes(attrs *sx.Pair) {
 	found := make(map[string]struct{}, length)
 	empty := make(map[string]struct{}, length)
 	a := make(map[string]string, length)
-	for node := attrs; node != nil; node = node.Tail() {
-		pair, isPair := sx.GetPair(node.Car())
+	for val := range attrs.Values() {
+		pair, isPair := sx.GetPair(val)
 		if !isPair {
 			continue
 		}
