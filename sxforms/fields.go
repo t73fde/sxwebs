@@ -63,7 +63,7 @@ func (fd *InputElement) Value() string { return fd.value }
 // Clear the input element.
 func (fd *InputElement) Clear() { fd.value = "" }
 
-// Time layouts of data coming from HTML forms
+// Time layouts of data coming from HTML forms.
 const (
 	htmlDateLayout = "2006-01-02"
 )
