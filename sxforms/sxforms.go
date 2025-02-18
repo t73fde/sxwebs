@@ -307,6 +307,7 @@ func (f *Form) Render() *sx.Pair {
 		}
 		if submitList := submitLb.List(); submitList != nil {
 			lb.Add(submitList)
+			submitLb.Reset()
 		}
 		lb.Add(field.Render(fieldID, f.messages[field.Name()]))
 	}

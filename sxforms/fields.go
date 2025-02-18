@@ -103,11 +103,13 @@ func (fd *InputElement) Render(fieldID string, messages []string) *sx.Pair {
 	flb.ExtendBang(renderMessages(messages))
 
 	var attrLb sx.ListBuilder
-	attrLb.Add(sxhtml.SymAttr)
-	attrLb.Add(sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)))
-	attrLb.Add(sx.Cons(sx.MakeSymbol("name"), sx.MakeString(fd.name)))
-	attrLb.Add(sx.Cons(sx.MakeSymbol("type"), sx.MakeString(fd.itype)))
-	attrLb.Add(sx.Cons(sx.MakeSymbol("value"), sx.MakeString(fd.value)))
+	attrLb.AddN(
+		sxhtml.SymAttr,
+		sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)),
+		sx.Cons(sx.MakeSymbol("name"), sx.MakeString(fd.name)),
+		sx.Cons(sx.MakeSymbol("type"), sx.MakeString(fd.itype)),
+		sx.Cons(sx.MakeSymbol("value"), sx.MakeString(fd.value)),
+	)
 	addBoolAttribute(&attrLb, sx.MakeSymbol("autofocus"), fd.autofocus)
 	addEnablingAttributes(&attrLb, fd.disabled, fd.validators)
 
@@ -223,12 +225,14 @@ func (se *SubmitElement) Disable() { se.disabled = true }
 // Render the submit element as SxHTML.
 func (se *SubmitElement) Render(fieldID string, _ []string) *sx.Pair {
 	var attrLb sx.ListBuilder
-	attrLb.Add(sxhtml.SymAttr)
-	attrLb.Add(sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)))
-	attrLb.Add(sx.Cons(sx.MakeSymbol("name"), sx.MakeString(se.name)))
-	attrLb.Add(sx.Cons(sx.MakeSymbol("type"), sx.MakeString("submit")))
-	attrLb.Add(sx.Cons(sx.MakeSymbol("value"), sx.MakeString(se.label)))
-	attrLb.Add(sx.Cons(sx.MakeSymbol("class"), sx.MakeString(submitPrioClass[se.prio])))
+	attrLb.AddN(
+		sxhtml.SymAttr,
+		sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)),
+		sx.Cons(sx.MakeSymbol("name"), sx.MakeString(se.name)),
+		sx.Cons(sx.MakeSymbol("type"), sx.MakeString("submit")),
+		sx.Cons(sx.MakeSymbol("value"), sx.MakeString(se.label)),
+		sx.Cons(sx.MakeSymbol("class"), sx.MakeString(submitPrioClass[se.prio])),
+	)
 	addBoolAttribute(&attrLb, sx.MakeSymbol("disabled"), se.disabled)
 
 	return sx.MakeList(sx.MakeSymbol("input"), attrLb.List())
@@ -394,20 +398,20 @@ func (se *SelectElement) Render(fieldID string, messages []string) *sx.Pair {
 	}
 	flb.ExtendBang(renderMessages(messages))
 	var attrLb sx.ListBuilder
-	attrLb.Add(sxhtml.SymAttr)
-	attrLb.Add(sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)))
-	attrLb.Add(sx.Cons(sx.MakeSymbol("name"), sx.MakeString(se.name)))
+	attrLb.AddN(
+		sxhtml.SymAttr,
+		sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)),
+		sx.Cons(sx.MakeSymbol("name"), sx.MakeString(se.name)),
+	)
 	addEnablingAttributes(&attrLb, se.disabled, se.validators)
 
 	var wlb sx.ListBuilder
-	wlb.Add(sx.MakeSymbol("select"))
-	wlb.Add(attrLb.List())
+	wlb.AddN(sx.MakeSymbol("select"), attrLb.List())
 	for i := 0; i < len(se.choices); i += 2 {
 		choice := se.choices[i]
 		text := se.choices[i+1]
 		var alb sx.ListBuilder
-		alb.Add(sxhtml.SymAttr)
-		alb.Add(sx.Cons(sx.MakeSymbol("value"), sx.MakeString(choice)))
+		alb.AddN(sxhtml.SymAttr, sx.Cons(sx.MakeSymbol("value"), sx.MakeString(choice)))
 		addBoolAttribute(&alb, sx.MakeSymbol("disabled"), choice == "")
 		addBoolAttribute(&alb, sx.MakeSymbol("selected"), se.value == choice)
 		wlb.Add(sx.MakeList(sx.MakeSymbol("option"), alb.List(), sx.MakeString(text)))
@@ -424,12 +428,14 @@ func renderLabel(field Field, fieldID, label string) *sx.Pair {
 		return nil
 	}
 	var lb sx.ListBuilder
-	lb.Add(sx.MakeSymbol("label"))
-	lb.Add(sx.MakeList(
-		sxhtml.SymAttr,
-		sx.Cons(sx.MakeSymbol("for"), sx.MakeString(fieldID)),
-	))
-	lb.Add(sx.MakeString(label))
+	lb.AddN(
+		sx.MakeSymbol("label"),
+		sx.MakeList(
+			sxhtml.SymAttr,
+			sx.Cons(sx.MakeSymbol("for"), sx.MakeString(fieldID)),
+		),
+		sx.MakeString(label),
+	)
 	if field.Validators().HasRequired() {
 		lb.Add(sx.MakeString("*"))
 	}
