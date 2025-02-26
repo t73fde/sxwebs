@@ -110,8 +110,8 @@ func MakeMakeURLBuiltin(st *site.Site) *sxeval.Builtin {
 		},
 		Fn: func(_ *sxeval.Environment, args sx.Vector) (sx.Object, error) {
 			ub := st.MakeURLBuilder()
-			for i := 0; i < len(args); i++ {
-				sVal, err := sxbuiltins.GetString(args[i], i)
+			for i, arg := range args {
+				sVal, err := sxbuiltins.GetString(arg, i)
 				if err != nil {
 					return nil, err
 				}
