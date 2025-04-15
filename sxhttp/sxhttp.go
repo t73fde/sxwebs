@@ -136,7 +136,7 @@ var URLPath = sxeval.Builtin{
 	MinArity: 1,
 	MaxArity: 1,
 	TestPure: sxeval.AssertPure,
-	Fn1: func(_ *sxeval.Environment, arg sx.Object) (sx.Object, error) {
+	Fn1: func(_ *sxeval.Environment, arg sx.Object, _ *sxeval.Binding) (sx.Object, error) {
 		r, err := GetBuiltinRequest(arg, 0)
 		if err != nil {
 			return sx.Nil(), err
@@ -151,7 +151,7 @@ var Context = sxeval.Builtin{
 	MinArity: 1,
 	MaxArity: 1,
 	TestPure: sxeval.AssertPure,
-	Fn1: func(_ *sxeval.Environment, arg sx.Object) (sx.Object, error) {
+	Fn1: func(_ *sxeval.Environment, arg sx.Object, _ *sxeval.Binding) (sx.Object, error) {
 		r, err := GetBuiltinRequest(arg, 0)
 		if err != nil {
 			return sx.Nil(), err

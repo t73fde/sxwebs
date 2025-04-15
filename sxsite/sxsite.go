@@ -32,25 +32,14 @@ func MakeURLForBuiltin(st *site.Site) *sxeval.Builtin {
 		MinArity: 1,
 		MaxArity: -1,
 		TestPure: sxeval.AssertPure,
-		Fn1: func(_ *sxeval.Environment, arg sx.Object) (sx.Object, error) {
+		Fn1: func(_ *sxeval.Environment, arg sx.Object, _ *sxeval.Binding) (sx.Object, error) {
 			nodeID, errArg := sxbuiltins.GetString(arg, 0)
 			if errArg != nil {
 				return nil, errArg
 			}
 			return builderToSx(nodeID, st.BuilderFor(nodeID.GetValue()))
 		},
-		Fn2: func(_ *sxeval.Environment, arg0, arg1 sx.Object) (sx.Object, error) {
-			nodeID, errArg := sxbuiltins.GetString(arg0, 0)
-			if errArg != nil {
-				return nil, errArg
-			}
-			key, errArg := sxbuiltins.GetString(arg1, 1)
-			if errArg != nil {
-				return nil, errArg
-			}
-			return builderToSx(nodeID, st.BuilderFor(nodeID.GetValue(), key.GetValue()))
-		},
-		Fn: func(_ *sxeval.Environment, args sx.Vector) (sx.Object, error) {
+		Fn: func(_ *sxeval.Environment, args sx.Vector, _ *sxeval.Binding) (sx.Object, error) {
 			nodeID, err := sxbuiltins.GetString(args[0], 0)
 			if err != nil {
 				return nil, err
@@ -82,10 +71,10 @@ func MakeMakeURLBuiltin(st *site.Site) *sxeval.Builtin {
 		MinArity: 0,
 		MaxArity: -1,
 		TestPure: sxeval.AssertPure,
-		Fn0: func(_ *sxeval.Environment) (sx.Object, error) {
+		Fn0: func(*sxeval.Environment, *sxeval.Binding) (sx.Object, error) {
 			return sx.MakeString(st.MakeURLBuilder().String()), nil
 		},
-		Fn1: func(_ *sxeval.Environment, arg sx.Object) (sx.Object, error) {
+		Fn1: func(_ *sxeval.Environment, arg sx.Object, _ *sxeval.Binding) (sx.Object, error) {
 			s, err := sxbuiltins.GetString(arg, 0)
 			if err != nil {
 				return nil, err
@@ -94,21 +83,7 @@ func MakeMakeURLBuiltin(st *site.Site) *sxeval.Builtin {
 			ub = ub.AddPath(s.GetValue())
 			return sx.MakeString(ub.String()), nil
 		},
-		Fn2: func(_ *sxeval.Environment, arg0, arg1 sx.Object) (sx.Object, error) {
-			ub := st.MakeURLBuilder()
-			s, err := sxbuiltins.GetString(arg0, 0)
-			if err != nil {
-				return nil, err
-			}
-			ub = ub.AddPath(s.GetValue())
-			s, err = sxbuiltins.GetString(arg1, 1)
-			if err != nil {
-				return nil, err
-			}
-			ub = ub.AddPath(s.GetValue())
-			return sx.MakeString(ub.String()), nil
-		},
-		Fn: func(_ *sxeval.Environment, args sx.Vector) (sx.Object, error) {
+		Fn: func(_ *sxeval.Environment, args sx.Vector, _ *sxeval.Binding) (sx.Object, error) {
 			ub := st.MakeURLBuilder()
 			for i, arg := range args {
 				sVal, err := sxbuiltins.GetString(arg, i)
