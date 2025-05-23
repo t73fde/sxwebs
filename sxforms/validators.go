@@ -153,7 +153,7 @@ func (mv *MinValue) Check(_ *Form, field Field) error {
 
 // Attributes returns HTML attributes as a Sx cons list.
 func (mv *MinValue) Attributes() (result *sx.Pair) {
-	return result.Cons(sx.Cons(sx.MakeSymbol("min"), sx.MakeString(mv.Value)))
+	return sx.MakeList(sx.Cons(sx.MakeSymbol("min"), sx.MakeString(mv.Value)))
 }
 
 // ----- MaxValue: field must have a maximum value.
@@ -187,8 +187,8 @@ func (mv *MaxValue) Check(_ *Form, field Field) error {
 }
 
 // Attributes returns HTML attributes as a Sx cons list.
-func (mv *MaxValue) Attributes() (result *sx.Pair) {
-	return result.Cons(sx.Cons(sx.MakeSymbol("max"), sx.MakeString(mv.Value)))
+func (mv *MaxValue) Attributes() *sx.Pair {
+	return sx.MakeList(sx.Cons(sx.MakeSymbol("max"), sx.MakeString(mv.Value)))
 }
 
 // ----- UInt: field must have an unsigned integer value.
@@ -206,23 +206,7 @@ func (u UInt) Check(_ *Form, field Field) error {
 }
 
 // Attributes returns HTML attributes as a Sx cons list.
-func (UInt) Attributes() (result *sx.Pair) { return sx.Nil() }
-
-// ----- Step: allow to increment / decrement value in HTML client.
-
-// Step is a non-validator that instructs the HTML client to increment / decrement
-// the value in its user interface. It does not check anything.
-type Step struct {
-	Value string
-}
-
-// Check the given field w.r.t. to this validator.
-func (*Step) Check(*Form, Field) error { return nil }
-
-// Attributes returns HTML attributes as a Sx cons list.
-func (s *Step) Attributes() (result *sx.Pair) {
-	return result.Cons(sx.Cons(sx.MakeSymbol("step"), sx.MakeString(s.Value)))
-}
+func (UInt) Attributes() *sx.Pair { return sx.Nil() }
 
 // ----- StringXXX: field must have a value that compares to a specific constant.
 

@@ -8,7 +8,7 @@
 // under this license.
 //
 // SPDX-License-Identifier: EUPL-1.2
-// SPDX-FileCopyrightText: 2023-present Detlef Stern
+// SPDX-FileCopyrightText: 2024-present Detlef Stern
 // -----------------------------------------------------------------------------
 
 package sxforms
@@ -42,12 +42,12 @@ type InputElement struct {
 	label      string
 	value      string
 	validators Validators
-	autofocus  bool
 	disabled   bool
 }
 
 // Constants for InputField.itype
 const (
+	itypeCheckbox = "checkbox"
 	itypeDate     = "date"
 	itypeDatetime = "datetime-local"
 	itypeEmail    = "email"
@@ -113,15 +113,11 @@ func (fd *InputElement) Render(fieldID string, messages []string) *sx.Pair {
 		sx.Cons(sx.MakeSymbol("type"), sx.MakeString(fd.itype)),
 		sx.Cons(sx.MakeSymbol("value"), sx.MakeString(fd.value)),
 	)
-	addBoolAttribute(&attrLb, sx.MakeSymbol("autofocus"), fd.autofocus)
 	addEnablingAttributes(&attrLb, fd.disabled, fd.validators)
 
 	flb.Add(sx.MakeList(sx.MakeSymbol("input"), attrLb.List()))
 	return flb.List()
 }
-
-// SetAutofocus for the field.
-func (fd *InputElement) SetAutofocus() *InputElement { fd.autofocus = true; return fd }
 
 // TextField builds a new text field.
 func TextField(name, label string, validators ...Validator) *InputElement {
@@ -183,6 +179,16 @@ func EmailField(name, label string, validators ...Validator) *InputElement {
 func NumberField(name, label string, validators ...Validator) *InputElement {
 	return &InputElement{
 		itype:      itypeNumber,
+		name:       name,
+		label:      label,
+		validators: validators,
+	}
+}
+
+// CheckboxField provides a checkbox.
+func CheckboxField(name, label string, validators ...Validator) *InputElement {
+	return &InputElement{
+		itype:      itypeCheckbox,
 		name:       name,
 		label:      label,
 		validators: validators,
