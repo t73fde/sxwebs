@@ -49,7 +49,9 @@ type InputElement struct {
 // Constants for InputField.itype
 const (
 	itypeDate     = "date"
+	itypeDatetime = "datetime-local"
 	itypeEmail    = "email"
+	itypeNumber   = "number"
 	itypePassword = "password"
 	itypeText     = "text"
 )
@@ -65,7 +67,8 @@ func (fd *InputElement) Clear() { fd.value = "" }
 
 // Time layouts of data coming from HTML forms.
 const (
-	htmlDateLayout = "2006-01-02"
+	htmlDateLayout     = "2006-01-02"
+	htmlDatetimeLayout = "2006-01-02T15:04"
 )
 
 // SetValue sets the value of this input element.
@@ -143,6 +146,19 @@ func DateField(name, label string, validators ...Validator) *InputElement {
 // DateValue returns the date as a string suitable for a HTML date field value.
 func DateValue(t time.Time) string { return t.Format(htmlDateLayout) }
 
+// DatetimeField builds a new field to enter dates.
+func DatetimeField(name, label string, validators ...Validator) *InputElement {
+	return &InputElement{
+		itype:      itypeDatetime,
+		name:       name,
+		label:      label,
+		validators: validators,
+	}
+}
+
+// DatetimeValue returns the time as a string suitable for a HTML datetime-local field value.
+func DatetimeValue(t time.Time) string { return t.Format(htmlDatetimeLayout) }
+
 // PasswordField builds a new password field.
 func PasswordField(name, label string, validators ...Validator) *InputElement {
 	return &InputElement{
@@ -157,6 +173,16 @@ func PasswordField(name, label string, validators ...Validator) *InputElement {
 func EmailField(name, label string, validators ...Validator) *InputElement {
 	return &InputElement{
 		itype:      itypeEmail,
+		name:       name,
+		label:      label,
+		validators: validators,
+	}
+}
+
+// NumberField builds a new number field.
+func NumberField(name, label string, validators ...Validator) *InputElement {
+	return &InputElement{
+		itype:      itypeNumber,
 		name:       name,
 		label:      label,
 		validators: validators,

@@ -20,6 +20,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -126,6 +127,30 @@ func (d Data) GetDate(fieldName string) time.Time {
 		}
 	}
 	return time.Time{}
+}
+
+// GetDatetime returns the value of the given field as a time.Time.
+func (d Data) GetDatetime(fieldName string) time.Time {
+	if len(d) > 0 {
+		if value, found := d[fieldName]; found {
+			if result, err := time.Parse(htmlDatetimeLayout, value); err == nil {
+				return result
+			}
+		}
+	}
+	return time.Time{}
+}
+
+// GetNumber returns the value of the given field as a number.
+func (d Data) GetNumber(fieldName string, defaultValue float64) float64 {
+	if len(d) > 0 {
+		if value, found := d[fieldName]; found {
+			if result, err := strconv.ParseFloat(value, 64); err == nil {
+				return result
+			}
+		}
+	}
+	return defaultValue
 }
 
 // Fields return the sequence of fields.

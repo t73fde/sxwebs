@@ -121,6 +121,109 @@ func (mml *MinMaxLength) Attributes() (result *sx.Pair) {
 	return result
 }
 
+// ----- MinValue: field must have a minimum value.
+
+// MinValue is a validator that checks for a minimum value.
+type MinValue struct {
+	Value string
+}
+
+// Check the given field w.r.t. to this validator.
+func (mv *MinValue) Check(_ *Form, field Field) error {
+	val := field.Value()
+	switch f := field.(type) {
+	case *InputElement:
+		switch f.itype {
+		case itypeNumber:
+			fvalue, err := strconv.ParseFloat(val, 64)
+			if err != nil {
+				return ValidationError(fmt.Sprintf("%s does not contain a number: %v", field.Name(), val))
+			}
+			mvalue, err := strconv.ParseFloat(mv.Value, 64)
+			if err == nil && fvalue < mvalue {
+				return ValidationError(fmt.Sprintf(
+					"minimum value of %s is %v, but got %v", field.Name(), mv.Value, val))
+			}
+		case itypeDate: // TODO
+		case itypeDatetime: // TODO
+		}
+	}
+	return nil
+}
+
+// Attributes returns HTML attributes as a Sx cons list.
+func (mv *MinValue) Attributes() (result *sx.Pair) {
+	return result.Cons(sx.Cons(sx.MakeSymbol("min"), sx.MakeString(mv.Value)))
+}
+
+// ----- MaxValue: field must have a maximum value.
+
+// MaxValue is a validator that checks for a maximum value.
+type MaxValue struct {
+	Value string
+}
+
+// Check the given field w.r.t. to this validator.
+func (mv *MaxValue) Check(_ *Form, field Field) error {
+	val := field.Value()
+	switch f := field.(type) {
+	case *InputElement:
+		switch f.itype {
+		case itypeNumber:
+			fvalue, err := strconv.ParseFloat(val, 64)
+			if err != nil {
+				return ValidationError(fmt.Sprintf("%s does not contain a number: %v", field.Name(), val))
+			}
+			mvalue, err := strconv.ParseFloat(mv.Value, 64)
+			if err == nil && fvalue > mvalue {
+				return ValidationError(fmt.Sprintf(
+					"minimum value of %s is %v, but got %v", field.Name(), mv.Value, val))
+			}
+		case itypeDate: // TODO
+		case itypeDatetime: // TODO
+		}
+	}
+	return nil
+}
+
+// Attributes returns HTML attributes as a Sx cons list.
+func (mv *MaxValue) Attributes() (result *sx.Pair) {
+	return result.Cons(sx.Cons(sx.MakeSymbol("max"), sx.MakeString(mv.Value)))
+}
+
+// ----- UInt: field must have an unsigned integer value.
+
+// UInt is a validator that checks for an unsigned integer value.
+type UInt struct{}
+
+// Check the given field w.r.t. to this validator.
+func (u UInt) Check(_ *Form, field Field) error {
+	val := field.Value()
+	if _, err := strconv.ParseUint(val, 10, 64); err != nil {
+		return ValidationError(fmt.Sprintf("%s does not contain an unsigned integer value: %v", field.Name(), val))
+	}
+	return nil
+}
+
+// Attributes returns HTML attributes as a Sx cons list.
+func (UInt) Attributes() (result *sx.Pair) { return sx.Nil() }
+
+// ----- Step: allow to increment / decrement value in HTML client.
+
+// Step is a non-validator that instructs the HTML client to increment / decrement
+// the value in its user interface. It does not check anything.
+type Step struct {
+	Value string
+}
+
+// Check the given field w.r.t. to this validator.
+func (*Step) Check(*Form, Field) error { return nil }
+
+// Attributes returns HTML attributes as a Sx cons list.
+func (s *Step) Attributes() (result *sx.Pair) {
+	return result.Cons(sx.Cons(sx.MakeSymbol("step"), sx.MakeString(s.Value)))
+}
+
 // ----- StringXXX: field must have a value that compares to a specific constant.
 
 // StringLess performs a string comparison with the given field.
