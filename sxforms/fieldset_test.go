@@ -34,13 +34,7 @@ func TestBasicFieldset(t *testing.T) {
 	if got, err := f.Field("user"); err != nil || got != cb2 {
 		t.Error("unable to find user field")
 	}
-	exp := "(form (@ (action . \"\") (method . \"POST\"))" +
-		" (div (label (@ (for . \"begin\")) \"Start\") (input (@ (id . \"begin\") (name . \"begin\") (type . \"date\") (value . \"\"))))" +
-		" (fieldset (@ (id . \"fieldset\") (name . \"fieldset\"))" +
-		" (legend \"I am legend\")" +
-		" (div (label (@ (for . \"admin\")) \"Admin\") (input (@ (id . \"admin\") (name . \"admin\") (type . \"checkbox\") (value . \"\"))))" +
-		" (div (label (@ (for . \"user\")) \"User\") (input (@ (id . \"user\") (name . \"user\") (type . \"checkbox\") (value . \"\")))))" +
-		" (div (label (@ (for . \"end\")) \"Stop\") (input (@ (id . \"end\") (name . \"end\") (type . \"date\") (value . \"\")))))"
+	exp := "(form (@ (action . \"\") (method . \"POST\")) (div (label (@ (for . \"begin\")) \"Start\") (input (@ (id . \"begin\") (name . \"begin\") (type . \"date\") (value . \"\")))) (fieldset (@ (id . \"fieldset\") (name . \"fieldset\")) (legend \"I am legend\") (div (input (@ (id . \"admin\") (name . \"admin\") (type . \"checkbox\") (value . \"admin\"))) (label (@ (for . \"admin\")) \"Admin\")) (div (input (@ (id . \"user\") (name . \"user\") (type . \"checkbox\") (value . \"user\"))) (label (@ (for . \"user\")) \"User\"))) (div (label (@ (for . \"end\")) \"Stop\") (input (@ (id . \"end\") (name . \"end\") (type . \"date\") (value . \"\")))))"
 	got := f.Render().String()
 	if got != exp {
 		t.Errorf("\nexpected %q\nbut got  %q", exp, got)

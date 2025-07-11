@@ -290,6 +290,15 @@ func (cbe *CheckboxElement) Clear() { cbe.value = "" }
 // SetValue sets the value of this element.
 func (cbe *CheckboxElement) SetValue(value string) error { cbe.value = value; return nil }
 
+// SetChecked sets the value of the checkbox element.
+func (cbe *CheckboxElement) SetChecked(val bool) {
+	if val {
+		cbe.value = "on"
+	} else {
+		cbe.value = ""
+	}
+}
+
 // Validators return the currently active validators.
 func (cbe *CheckboxElement) Validators() Validators { return nil }
 
@@ -305,8 +314,11 @@ func (cbe *CheckboxElement) Render(fieldID string, _ []string) *sx.Pair {
 		sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)),
 		sx.Cons(sx.MakeSymbol("name"), sx.MakeString(cbe.name)),
 		sx.Cons(sx.MakeSymbol("type"), sx.MakeString("checkbox")),
-		sx.Cons(sx.MakeSymbol("value"), sx.MakeString(cbe.value)),
+		sx.Cons(sx.MakeSymbol("value"), sx.MakeString(cbe.name)),
 	)
+	if cbe.value != "" {
+		attrLb.Add(sx.Cons(sx.MakeSymbol("checked"), sx.Nil()))
+	}
 	addEnablingAttributes(&attrLb, cbe.disabled, nil)
 
 	var flb sx.ListBuilder
