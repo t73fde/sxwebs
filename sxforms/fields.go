@@ -185,16 +185,6 @@ func NumberField(name, label string, validators ...Validator) *InputElement {
 	}
 }
 
-// CheckboxField provides a checkbox.
-func CheckboxField(name, label string, validators ...Validator) *InputElement {
-	return &InputElement{
-		itype:      itypeCheckbox,
-		name:       name,
-		label:      label,
-		validators: validators,
-	}
-}
-
 // ----- Submit input element
 
 // SubmitElement represents an element <input type="submit" ...>
@@ -268,6 +258,64 @@ func (se *SubmitElement) Render(fieldID string, _ []string) *sx.Pair {
 	addBoolAttribute(&attrLb, sx.MakeSymbol("disabled"), se.disabled)
 
 	return sx.MakeList(sx.MakeSymbol("input"), attrLb.List())
+}
+
+// ----- Checkbox field
+
+// CheckboxElement represents a checkbox.
+type CheckboxElement struct {
+	name     string
+	label    string
+	value    string
+	disabled bool
+}
+
+// CheckboxField provides a checkbox.
+func CheckboxField(name, label string) *CheckboxElement {
+	return &CheckboxElement{
+		name:  name,
+		label: label,
+	}
+}
+
+// Name returns the name of this element.
+func (cbe *CheckboxElement) Name() string { return cbe.name }
+
+// Value returns the value of this element.
+func (cbe *CheckboxElement) Value() string { return cbe.value }
+
+// Clear the element.
+func (cbe *CheckboxElement) Clear() { cbe.value = "" }
+
+// SetValue sets the value of this element.
+func (cbe *CheckboxElement) SetValue(value string) error { cbe.value = value; return nil }
+
+// Validators return the currently active validators.
+func (cbe *CheckboxElement) Validators() Validators { return nil }
+
+// Disable the checkbox element.
+func (cbe *CheckboxElement) Disable() { cbe.disabled = true }
+
+// Render the checkbox element as SxHTML.
+func (cbe *CheckboxElement) Render(fieldID string, _ []string) *sx.Pair {
+
+	var attrLb sx.ListBuilder
+	attrLb.AddN(
+		sxhtml.SymAttr,
+		sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)),
+		sx.Cons(sx.MakeSymbol("name"), sx.MakeString(cbe.name)),
+		sx.Cons(sx.MakeSymbol("type"), sx.MakeString("checkbox")),
+		sx.Cons(sx.MakeSymbol("value"), sx.MakeString(cbe.value)),
+	)
+	addEnablingAttributes(&attrLb, cbe.disabled, nil)
+
+	var flb sx.ListBuilder
+	flb.Add(sx.MakeSymbol("div"))
+	flb.Add(sx.MakeList(sx.MakeSymbol("input"), attrLb.List()))
+	if label := renderLabel(cbe, fieldID, cbe.label); label != nil {
+		flb.Add(label)
+	}
+	return flb.List()
 }
 
 // ----- <textarea ...>...</textarea> field

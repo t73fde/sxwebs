@@ -40,23 +40,30 @@ type Form struct {
 
 // Define builds a new form.
 func Define(fields ...Field) *Form {
-	fieldnames := make(map[string]Field, len(fields))
-	for _, field := range fields {
-		fieldnames[field.Name()] = field
-	}
-	return &Form{
+	f := &Form{
 		method:      http.MethodPost,
 		maxFormSize: (10 << 20), // 10 MB
 		fields:      fields,
-		fieldnames:  fieldnames,
+		fieldnames:  make(map[string]Field, len(fields)),
 	}
+	for _, field := range fields {
+		f.addName(field)
+	}
+	return f
 }
 
-// Add a field.
-func (f *Form) Add(field Field) *Form {
+// Append a field.
+func (f *Form) Append(field Field) *Form {
 	f.fields = append(f.fields, field)
-	f.fieldnames[field.Name()] = field
+	f.addName(field)
 	return f
+}
+
+func (f *Form) addName(field Field) {
+	f.fieldnames[field.Name()] = field
+	if fs, ok := field.(*Fieldset); ok {
+		fs.setForm(f)
+	}
 }
 
 // Field return the field with the given name, or nil.
