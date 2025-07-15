@@ -72,17 +72,19 @@ const (
 )
 
 // SetValue sets the value of this input element.
-func (fd *InputElement) SetValue(value string) error {
+func (fd *InputElement) SetValue(value string) (err error) {
 	fd.value = value
 	switch fd.itype {
 	case itypeDate:
 		if value != "" {
-			if _, err := time.Parse(htmlDateLayout, value); err != nil {
-				return err
-			}
+			_, err = time.Parse(htmlDateLayout, value)
+		}
+	case itypeDatetime:
+		if value != "" {
+			_, err = time.Parse(htmlDatetimeLayout, value)
 		}
 	}
-	return nil
+	return err
 }
 
 // Validators returns all currently active Validators.
