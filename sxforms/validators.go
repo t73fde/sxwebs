@@ -8,17 +8,19 @@
 // under this license.
 //
 // SPDX-License-Identifier: EUPL-1.2
-// SPDX-FileCopyrightText: 2023-present Detlef Stern
+// SPDX-FileCopyrightText: 2024-present Detlef Stern
 // -----------------------------------------------------------------------------
 
 package sxforms
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"unicode/utf8"
 
 	"t73f.de/r/sx"
+	"t73f.de/r/zero/set"
 )
 
 // Validator is used to check if a field value is valid.
@@ -207,6 +209,34 @@ func (u UInt) Check(_ *Form, field Field) error {
 
 // Attributes returns HTML attributes as a Sx cons list.
 func (UInt) Attributes() *sx.Pair { return sx.Nil() }
+
+// ----- AnyOf: field must have a value that is explitly stated as valid.
+// ----- NoneOf: field must have not a value that is explitly stated as invalid.
+
+// AnyOf is a validator that checks for an element of a set.
+func AnyOf(values ...string) Validator { return setOf{set.New(values...), false} }
+
+// NoneOf is a validator that checks for an element of a set.
+func NoneOf(values ...string) Validator { return setOf{set.New(values...), true} }
+
+type setOf struct {
+	Set    *set.Set[string]
+	IsNone bool
+}
+
+func (so setOf) Check(_ *Form, field Field) error {
+	val := field.Value()
+	if so.Set.Contains(val) != so.IsNone {
+		return nil
+	}
+	if so.IsNone {
+		return ValidationError(fmt.Sprintf("%s contains an invalid value: %v", field.Name(), val))
+	}
+	validElements := slices.Collect(so.Set.Values())
+	slices.Sort(validElements)
+	return ValidationError(fmt.Sprintf("%s does not contain any valid input: %v (expected one of %v)", field.Name(), val, validElements))
+}
+func (so setOf) Attributes() *sx.Pair { return sx.Nil() }
 
 // ----- StringXXX: field must have a value that compares to a specific constant.
 
