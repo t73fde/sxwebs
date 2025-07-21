@@ -96,6 +96,18 @@ func (f *Form) Disable() *Form {
 	return f
 }
 
+// DisableFields by given field name.
+func (f *Form) DisableFields(names ...string) *Form {
+	if f != nil {
+		for _, name := range names {
+			if fld, found := f.fieldnames[name]; found {
+				fld.Disable()
+			}
+		}
+	}
+	return f
+}
+
 // Messages contains all messages, as a map of field names to a list of string.
 // Messages for the whole form will use the empty string as a field name.
 type Messages map[string][]string
