@@ -258,6 +258,7 @@ func (se *SubmitElement) Render(fieldID string, _ []string) *sx.Pair {
 		sx.Cons(sx.MakeSymbol("class"), sx.MakeString(submitPrioClass[se.prio])),
 	)
 	addBoolAttribute(&attrLb, sx.MakeSymbol("disabled"), se.disabled)
+	addBoolAttribute(&attrLb, sx.MakeSymbol("formnovalidate"), se.isCancel)
 
 	return sx.MakeList(sx.MakeSymbol("input"), attrLb.List())
 }
