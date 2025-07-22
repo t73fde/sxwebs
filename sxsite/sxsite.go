@@ -44,9 +44,9 @@ func MakeURLForBuiltin(st *site.Site) *sxeval.Builtin {
 			if err != nil {
 				return nil, err
 			}
-			vals := make([]string, 0, len(args)-1)
+			vals := make([]any, 0, len(args)-1)
 			for i := 1; i < len(args); i++ {
-				val, errArg := sxbuiltins.GetString(args[i], i)
+				val, errArg := sxbuiltins.GetString(args[i], i) // TODO: more than just string?
 				if errArg != nil {
 					return nil, errArg
 				}
