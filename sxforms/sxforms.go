@@ -152,7 +152,7 @@ func (d Data) GetDate(fieldName string) time.Time {
 func (d Data) GetDatetime(fieldName string) time.Time {
 	if len(d) > 0 {
 		if value, found := d[fieldName]; found {
-			if result, err := time.Parse(htmlDatetimeLayout, value); err == nil {
+			if result, err := time.ParseInLocation(htmlDatetimeLayout, value, time.Local); err == nil {
 				return result
 			}
 		}
