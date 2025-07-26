@@ -255,8 +255,8 @@ func (f *Form) OnSubmit(r *http.Request) (SubmitResult, string) {
 					}
 					return SubmitInvalidData, submitName
 				}
-				if se.isCancel {
-					return SubmitCancel, name
+				if se.noFormValidate {
+					return SubmitNoValidate, name
 				}
 				submitName = name
 			}
@@ -277,10 +277,10 @@ const (
 	// No data was received
 	SubmitNoData SubmitResult = iota
 
-	// Data received, but form was cancelled
-	SubmitCancel
+	// Data received, but form was not validated, e.g. cancelled
+	SubmitNoValidate
 
-	// Data received, but it is not valid.
+	// Data received, but is not valid.
 	SubmitInvalidData
 
 	// Valid data received.

@@ -201,12 +201,12 @@ func NumberField(name, label string, validators ...Validator) *InputElement {
 
 // SubmitElement represents an element <input type="submit" ...>
 type SubmitElement struct {
-	name     string
-	label    string
-	value    string
-	prio     uint8
-	disabled bool
-	isCancel bool
+	name           string
+	label          string
+	value          string
+	prio           uint8
+	disabled       bool
+	noFormValidate bool
 }
 
 // SubmitField builds a new submit field.
@@ -228,13 +228,20 @@ var submitPrioClass = map[uint8]string{
 	0: "primary",
 	1: "secondary",
 	2: "tertiary",
-	3: "cancel",
+	3: "cancel", // must always be the last, see se.SetCancel()
 }
 
-// MarkCancel marks the submit field as an action that disables form
+// NoFormValidate marks the submit field as an action that disables form
 // validation, if this field causes the form to be sent.
-func (se *SubmitElement) MarkCancel() *SubmitElement {
-	se.isCancel = true
+func (se *SubmitElement) NoFormValidate() *SubmitElement {
+	se.noFormValidate = true
+	return se
+}
+
+// SetCancel marks the submit field to work as as a cancel button.
+func (se *SubmitElement) SetCancel() *SubmitElement {
+	se.prio = uint8(len(submitPrioClass) - 1)
+	se.noFormValidate = true
 	return se
 }
 
@@ -268,7 +275,7 @@ func (se *SubmitElement) Render(fieldID string, _ []string) *sx.Pair {
 		sx.Cons(sx.MakeSymbol("class"), sx.MakeString(submitPrioClass[se.prio])),
 	)
 	addBoolAttribute(&attrLb, sx.MakeSymbol("disabled"), se.disabled)
-	addBoolAttribute(&attrLb, sx.MakeSymbol("formnovalidate"), se.isCancel)
+	addBoolAttribute(&attrLb, sx.MakeSymbol("formnovalidate"), se.noFormValidate)
 
 	return sx.MakeList(sx.MakeSymbol("input"), attrLb.List())
 }
