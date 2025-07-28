@@ -32,6 +32,11 @@ const (
 	attrJS             // Escape JavaScript
 )
 
+// MakeSymbol creates a symbol to be used for HTML purposes.
+func MakeSymbol(s string) *sx.Symbol {
+	return sx.MakeSymbol(s)
+}
+
 // Names for special symbols.
 const (
 	nameAttr          = "@"
@@ -43,15 +48,15 @@ const (
 	nameDoctype       = "@@@@"
 )
 
-// Some often used sx symbols.
+// Some often used symbols.
 var (
-	SymAttr          = sx.MakeSymbol(nameAttr)
-	SymCDATA         = sx.MakeSymbol(nameCDATA)
-	SymNoEscape      = sx.MakeSymbol(nameNoEscape)
-	SymListSplice    = sx.MakeSymbol(nameListSplice)
-	SymInlineComment = sx.MakeSymbol(nameInlineComment)
-	SymBlockComment  = sx.MakeSymbol(nameBlockComment)
-	SymDoctype       = sx.MakeSymbol(nameDoctype)
+	SymAttr          = MakeSymbol(nameAttr)
+	SymCDATA         = MakeSymbol(nameCDATA)
+	SymNoEscape      = MakeSymbol(nameNoEscape)
+	SymListSplice    = MakeSymbol(nameListSplice)
+	SymInlineComment = MakeSymbol(nameInlineComment)
+	SymBlockComment  = MakeSymbol(nameBlockComment)
+	SymDoctype       = MakeSymbol(nameDoctype)
 )
 
 // Generator is the object that allows to generate HTML.
@@ -334,19 +339,19 @@ func getAttributeType(sym *sx.Symbol) attrType {
 	name := sym.String()
 	if dataName, isData := strings.CutPrefix(name, "data-"); isData {
 		name = dataName
-		sym = sx.MakeSymbol(name)
+		sym = MakeSymbol(name)
 	} else if prefix, rest, hasPrefix := strings.Cut(name, ":"); hasPrefix {
 		if prefix == "xmlns" {
 			return attrURL
 		}
 		name = rest
-		sym = sx.MakeSymbol(name)
+		sym = MakeSymbol(name)
 	}
 
 	if _, isURLAttr := urlAttrs[sym.GetValue()]; isURLAttr {
 		return attrURL
 	}
-	if sym.IsEqual(sx.MakeSymbol("style")) {
+	if sym.IsEqual(MakeSymbol("style")) {
 		return attrCSS
 	}
 
