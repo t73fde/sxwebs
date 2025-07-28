@@ -20,6 +20,7 @@ import (
 	"unicode/utf8"
 
 	"t73f.de/r/sx"
+	"t73f.de/r/sxwebs/sxhtml"
 	"t73f.de/r/zero/set"
 )
 
@@ -74,7 +75,7 @@ func (ir Required) Check(_ *Form, field Field) error {
 
 // Attributes returns HTML attributes as a Sx cons list.
 func (Required) Attributes() *sx.Pair {
-	return sx.MakeList(sx.Cons(sx.MakeSymbol("required"), sx.Nil()))
+	return sx.MakeList(sx.Cons(sxhtml.MakeSymbol("required"), sx.Nil()))
 }
 
 // ----- Optional: field must not have a value, could be missing.
@@ -115,10 +116,10 @@ func (mml *MinMaxLength) Check(_ *Form, field Field) error {
 // Attributes returns HTML attributes as a Sx cons list.
 func (mml *MinMaxLength) Attributes() (result *sx.Pair) {
 	if minl := mml.MinLength; minl > 0 {
-		result = result.Cons(sx.Cons(sx.MakeSymbol("minlength"), sx.MakeString(strconv.Itoa(minl))))
+		result = result.Cons(sx.Cons(sxhtml.MakeSymbol("minlength"), sx.MakeString(strconv.Itoa(minl))))
 	}
 	if maxl := mml.MaxLength; maxl > 0 {
-		result = result.Cons(sx.Cons(sx.MakeSymbol("maxlength"), sx.MakeString(strconv.Itoa(maxl))))
+		result = result.Cons(sx.Cons(sxhtml.MakeSymbol("maxlength"), sx.MakeString(strconv.Itoa(maxl))))
 	}
 	return result
 }
@@ -155,7 +156,7 @@ func (mv *MinValue) Check(_ *Form, field Field) error {
 
 // Attributes returns HTML attributes as a Sx cons list.
 func (mv *MinValue) Attributes() (result *sx.Pair) {
-	return sx.MakeList(sx.Cons(sx.MakeSymbol("min"), sx.MakeString(mv.Value)))
+	return sx.MakeList(sx.Cons(sxhtml.MakeSymbol("min"), sx.MakeString(mv.Value)))
 }
 
 // ----- MaxValue: field must have a maximum value.
@@ -190,7 +191,7 @@ func (mv *MaxValue) Check(_ *Form, field Field) error {
 
 // Attributes returns HTML attributes as a Sx cons list.
 func (mv *MaxValue) Attributes() *sx.Pair {
-	return sx.MakeList(sx.Cons(sx.MakeSymbol("max"), sx.MakeString(mv.Value)))
+	return sx.MakeList(sx.Cons(sxhtml.MakeSymbol("max"), sx.MakeString(mv.Value)))
 }
 
 // ----- UInt: field must have an unsigned integer value.

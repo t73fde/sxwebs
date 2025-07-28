@@ -16,7 +16,6 @@ package sxforms
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"t73f.de/r/sx"
 	"t73f.de/r/sxwebs/sxhtml"
@@ -31,170 +30,6 @@ type Field interface {
 	Validators() Validators
 	Disable()
 	Render(string, []string) *sx.Pair
-}
-
-// ----- <input ...> fields
-
-// InputElement represents a HTTP <input> field.
-type InputElement struct {
-	itype      string
-	name       string
-	label      string
-	value      string
-	validators Validators
-	disabled   bool
-}
-
-// Constants for InputField.itype
-const (
-	itypeCheckbox = "checkbox"
-	itypeDate     = "date"
-	itypeDatetime = "datetime-local"
-	itypeEmail    = "email"
-	itypeNumber   = "number"
-	itypePassword = "password"
-	itypeText     = "text"
-)
-
-// Name returns the name of this element.
-func (fd *InputElement) Name() string { return fd.name }
-
-// Value returns the value of the input element.
-func (fd *InputElement) Value() string { return fd.value }
-
-// Clear the input element.
-func (fd *InputElement) Clear() { fd.value = "" }
-
-// Time layouts of data coming from HTML forms.
-const (
-	htmlDateLayout     = "2006-01-02"
-	htmlDatetimeLayout = "2006-01-02T15:04"
-)
-
-// SetValue sets the value of this input element.
-func (fd *InputElement) SetValue(value string) (err error) {
-	fd.value = value
-	switch fd.itype {
-	case itypeDate:
-		if value != "" {
-			_, err = time.Parse(htmlDateLayout, value)
-		}
-	case itypeDatetime:
-		if value != "" {
-			_, err = time.Parse(htmlDatetimeLayout, value)
-		}
-	}
-	return err
-}
-
-// Validators returns all currently active Validators.
-func (fd *InputElement) Validators() Validators {
-	if fd.disabled {
-		return nil
-	}
-	return fd.validators
-}
-
-// Disable the input element.
-func (fd *InputElement) Disable() { fd.disabled = true }
-
-// Render the form input element as SxHTML.
-func (fd *InputElement) Render(fieldID string, messages []string) *sx.Pair {
-	var flb sx.ListBuilder
-	flb.Add(sx.MakeSymbol("div"))
-	if label := renderLabel(fd, fieldID, fd.label); label != nil {
-		flb.Add(label)
-	}
-	flb.ExtendBang(renderMessages(messages))
-
-	var attrLb sx.ListBuilder
-	attrLb.AddN(
-		sxhtml.SymAttr,
-		sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)),
-		sx.Cons(sx.MakeSymbol("name"), sx.MakeString(fd.name)),
-		sx.Cons(sx.MakeSymbol("type"), sx.MakeString(fd.itype)),
-		sx.Cons(sx.MakeSymbol("value"), sx.MakeString(fd.value)),
-	)
-	addEnablingAttributes(&attrLb, fd.disabled, fd.validators)
-
-	flb.Add(sx.MakeList(sx.MakeSymbol("input"), attrLb.List()))
-	return flb.List()
-}
-
-// TextField builds a new text field.
-func TextField(name, label string, validators ...Validator) *InputElement {
-	return &InputElement{
-		itype:      itypeText,
-		name:       name,
-		label:      label,
-		validators: validators,
-	}
-}
-
-// DateField builds a new field to enter dates.
-func DateField(name, label string, validators ...Validator) *InputElement {
-	return &InputElement{
-		itype:      itypeDate,
-		name:       name,
-		label:      label,
-		validators: validators,
-	}
-}
-
-// DateValue returns the date as a string suitable for a HTML date field value.
-func DateValue(t time.Time) string {
-	if t.Equal(time.Time{}) {
-		return ""
-	}
-	return t.Format(htmlDateLayout)
-}
-
-// DatetimeField builds a new field to enter dates.
-func DatetimeField(name, label string, validators ...Validator) *InputElement {
-	return &InputElement{
-		itype:      itypeDatetime,
-		name:       name,
-		label:      label,
-		validators: validators,
-	}
-}
-
-// DatetimeValue returns the time as a string suitable for a HTML datetime-local field value.
-func DatetimeValue(t time.Time) string {
-	if t.Equal(time.Time{}) {
-		return ""
-	}
-	return t.Format(htmlDatetimeLayout)
-}
-
-// PasswordField builds a new password field.
-func PasswordField(name, label string, validators ...Validator) *InputElement {
-	return &InputElement{
-		itype:      itypePassword,
-		name:       name,
-		label:      label,
-		validators: validators,
-	}
-}
-
-// EmailField builds a new e-mail field.
-func EmailField(name, label string, validators ...Validator) *InputElement {
-	return &InputElement{
-		itype:      itypeEmail,
-		name:       name,
-		label:      label,
-		validators: validators,
-	}
-}
-
-// NumberField builds a new number field.
-func NumberField(name, label string, validators ...Validator) *InputElement {
-	return &InputElement{
-		itype:      itypeNumber,
-		name:       name,
-		label:      label,
-		validators: validators,
-	}
 }
 
 // ----- Submit input element
@@ -268,16 +103,16 @@ func (se *SubmitElement) Render(fieldID string, _ []string) *sx.Pair {
 	var attrLb sx.ListBuilder
 	attrLb.AddN(
 		sxhtml.SymAttr,
-		sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)),
-		sx.Cons(sx.MakeSymbol("name"), sx.MakeString(se.name)),
-		sx.Cons(sx.MakeSymbol("type"), sx.MakeString("submit")),
-		sx.Cons(sx.MakeSymbol("value"), sx.MakeString(se.label)),
-		sx.Cons(sx.MakeSymbol("class"), sx.MakeString(submitPrioClass[se.prio])),
+		sx.Cons(sxhtml.MakeSymbol("id"), sx.MakeString(fieldID)),
+		sx.Cons(sxhtml.MakeSymbol("name"), sx.MakeString(se.name)),
+		sx.Cons(sxhtml.MakeSymbol("type"), sx.MakeString("submit")),
+		sx.Cons(sxhtml.MakeSymbol("value"), sx.MakeString(se.label)),
+		sx.Cons(sxhtml.MakeSymbol("class"), sx.MakeString(submitPrioClass[se.prio])),
 	)
-	addBoolAttribute(&attrLb, sx.MakeSymbol("disabled"), se.disabled)
-	addBoolAttribute(&attrLb, sx.MakeSymbol("formnovalidate"), se.noFormValidate)
+	addBoolAttribute(&attrLb, sxhtml.MakeSymbol("disabled"), se.disabled)
+	addBoolAttribute(&attrLb, sxhtml.MakeSymbol("formnovalidate"), se.noFormValidate)
 
-	return sx.MakeList(sx.MakeSymbol("input"), attrLb.List())
+	return sx.MakeList(sxhtml.MakeSymbol("input"), attrLb.List())
 }
 
 // ----- Checkbox field
@@ -339,19 +174,19 @@ func (cbe *CheckboxElement) Render(fieldID string, _ []string) *sx.Pair {
 	var attrLb sx.ListBuilder
 	attrLb.AddN(
 		sxhtml.SymAttr,
-		sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)),
-		sx.Cons(sx.MakeSymbol("name"), sx.MakeString(cbe.name)),
-		sx.Cons(sx.MakeSymbol("type"), sx.MakeString("checkbox")),
-		sx.Cons(sx.MakeSymbol("value"), sx.MakeString(cbe.name)),
+		sx.Cons(sxhtml.MakeSymbol("id"), sx.MakeString(fieldID)),
+		sx.Cons(sxhtml.MakeSymbol("name"), sx.MakeString(cbe.name)),
+		sx.Cons(sxhtml.MakeSymbol("type"), sx.MakeString("checkbox")),
+		sx.Cons(sxhtml.MakeSymbol("value"), sx.MakeString(cbe.name)),
 	)
 	if cbe.value != "" {
-		attrLb.Add(sx.Cons(sx.MakeSymbol("checked"), sx.Nil()))
+		attrLb.Add(sx.Cons(sxhtml.MakeSymbol("checked"), sx.Nil()))
 	}
 	addEnablingAttributes(&attrLb, cbe.disabled, nil)
 
 	var flb sx.ListBuilder
-	flb.Add(sx.MakeSymbol("div"))
-	flb.Add(sx.MakeList(sx.MakeSymbol("input"), attrLb.List()))
+	flb.Add(sxhtml.MakeSymbol("div"))
+	flb.Add(sx.MakeList(sxhtml.MakeSymbol("input"), attrLb.List()))
 	if label := renderLabel(cbe, fieldID, cbe.label); label != nil {
 		flb.Add(label)
 	}
@@ -422,24 +257,24 @@ func (tae *TextAreaElement) Disable() { tae.disabled = true }
 // Render the text area as SxHTML.
 func (tae *TextAreaElement) Render(fieldID string, messages []string) *sx.Pair {
 	var flb sx.ListBuilder
-	flb.Add(sx.MakeSymbol("div"))
+	flb.Add(sxhtml.MakeSymbol("div"))
 	if label := renderLabel(tae, fieldID, tae.label); label != nil {
 		flb.Add(label)
 	}
 	flb.ExtendBang(renderMessages(messages))
 	var attrLb sx.ListBuilder
 	attrLb.Add(sxhtml.SymAttr)
-	attrLb.Add(sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)))
-	attrLb.Add(sx.Cons(sx.MakeSymbol("name"), sx.MakeString(tae.name)))
+	attrLb.Add(sx.Cons(sxhtml.MakeSymbol("id"), sx.MakeString(fieldID)))
+	attrLb.Add(sx.Cons(sxhtml.MakeSymbol("name"), sx.MakeString(tae.name)))
 	if rows := tae.rows; rows > 0 {
-		attrLb.Add(sx.Cons(sx.MakeSymbol("rows"), sx.MakeString(fmt.Sprint(rows))))
+		attrLb.Add(sx.Cons(sxhtml.MakeSymbol("rows"), sx.MakeString(fmt.Sprint(rows))))
 	}
 	if cols := tae.cols; cols > 0 {
-		attrLb.Add(sx.Cons(sx.MakeSymbol("cols"), sx.MakeString(fmt.Sprint(cols))))
+		attrLb.Add(sx.Cons(sxhtml.MakeSymbol("cols"), sx.MakeString(fmt.Sprint(cols))))
 	}
 	addEnablingAttributes(&attrLb, tae.disabled, tae.validators)
 
-	flb.Add(sx.MakeList(sx.MakeSymbol("textarea"), attrLb.List(), sx.MakeString(tae.value)))
+	flb.Add(sx.MakeList(sxhtml.MakeSymbol("textarea"), attrLb.List(), sx.MakeString(tae.value)))
 	return flb.List()
 }
 
@@ -512,7 +347,7 @@ func (se *SelectElement) Disable() { se.disabled = true }
 // Render the select element as SxHTML.
 func (se *SelectElement) Render(fieldID string, messages []string) *sx.Pair {
 	var flb sx.ListBuilder
-	flb.Add(sx.MakeSymbol("div"))
+	flb.Add(sxhtml.MakeSymbol("div"))
 	if label := renderLabel(se, fieldID, se.label); label != nil {
 		flb.Add(label)
 	}
@@ -520,21 +355,21 @@ func (se *SelectElement) Render(fieldID string, messages []string) *sx.Pair {
 	var attrLb sx.ListBuilder
 	attrLb.AddN(
 		sxhtml.SymAttr,
-		sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)),
-		sx.Cons(sx.MakeSymbol("name"), sx.MakeString(se.name)),
+		sx.Cons(sxhtml.MakeSymbol("id"), sx.MakeString(fieldID)),
+		sx.Cons(sxhtml.MakeSymbol("name"), sx.MakeString(se.name)),
 	)
 	addEnablingAttributes(&attrLb, se.disabled, se.validators)
 
 	var wlb sx.ListBuilder
-	wlb.AddN(sx.MakeSymbol("select"), attrLb.List())
+	wlb.AddN(sxhtml.MakeSymbol("select"), attrLb.List())
 	for i := 0; i < len(se.choices); i += 2 {
 		choice := se.choices[i]
 		text := se.choices[i+1]
 		var alb sx.ListBuilder
-		alb.AddN(sxhtml.SymAttr, sx.Cons(sx.MakeSymbol("value"), sx.MakeString(choice)))
-		addBoolAttribute(&alb, sx.MakeSymbol("disabled"), choice == "")
-		addBoolAttribute(&alb, sx.MakeSymbol("selected"), se.value == choice)
-		wlb.Add(sx.MakeList(sx.MakeSymbol("option"), alb.List(), sx.MakeString(text)))
+		alb.AddN(sxhtml.SymAttr, sx.Cons(sxhtml.MakeSymbol("value"), sx.MakeString(choice)))
+		addBoolAttribute(&alb, sxhtml.MakeSymbol("disabled"), choice == "")
+		addBoolAttribute(&alb, sxhtml.MakeSymbol("selected"), se.value == choice)
+		wlb.Add(sx.MakeList(sxhtml.MakeSymbol("option"), alb.List(), sx.MakeString(text)))
 	}
 
 	flb.Add(wlb.List())
@@ -549,10 +384,10 @@ func renderLabel(field Field, fieldID, label string) *sx.Pair {
 	}
 	var lb sx.ListBuilder
 	lb.AddN(
-		sx.MakeSymbol("label"),
+		sxhtml.MakeSymbol("label"),
 		sx.MakeList(
 			sxhtml.SymAttr,
-			sx.Cons(sx.MakeSymbol("for"), sx.MakeString(fieldID)),
+			sx.Cons(sxhtml.MakeSymbol("for"), sx.MakeString(fieldID)),
 		),
 		sx.MakeString(label),
 	)
@@ -566,10 +401,10 @@ func renderMessages(messages []string) *sx.Pair {
 	var lb sx.ListBuilder
 	for _, msg := range messages {
 		lb.Add(sx.MakeList(
-			sx.MakeSymbol("span"),
+			sxhtml.MakeSymbol("span"),
 			sx.MakeList(
 				sxhtml.SymAttr,
-				sx.Cons(sx.MakeSymbol("class"), sx.MakeString("message")),
+				sx.Cons(sxhtml.MakeSymbol("class"), sx.MakeString("message")),
 			),
 			sx.MakeString(msg),
 		))
@@ -598,7 +433,7 @@ func renderValidators(validators []Validator) *sx.Pair {
 // will be added.
 func addEnablingAttributes(lb *sx.ListBuilder, disabled bool, validators []Validator) {
 	if disabled {
-		lb.Add(sx.Cons(sx.MakeSymbol("disabled"), sx.Nil()))
+		lb.Add(sx.Cons(sxhtml.MakeSymbol("disabled"), sx.Nil()))
 	} else {
 		lb.ExtendBang(renderValidators(validators))
 	}

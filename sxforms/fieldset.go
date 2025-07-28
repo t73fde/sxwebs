@@ -76,19 +76,19 @@ func (fs *Fieldset) Render(fieldID string, messages []string) *sx.Pair {
 	var attrLb sx.ListBuilder
 	attrLb.AddN(
 		sxhtml.SymAttr,
-		sx.Cons(sx.MakeSymbol("id"), sx.MakeString(fieldID)),
-		sx.Cons(sx.MakeSymbol("name"), sx.MakeString(fs.name)),
+		sx.Cons(sxhtml.MakeSymbol("id"), sx.MakeString(fieldID)),
+		sx.Cons(sxhtml.MakeSymbol("name"), sx.MakeString(fs.name)),
 	)
-	addBoolAttribute(&attrLb, sx.MakeSymbol("disabled"), fs.disabled)
+	addBoolAttribute(&attrLb, sxhtml.MakeSymbol("disabled"), fs.disabled)
 
 	form := fs.form
 	var lb sx.ListBuilder
 	lb.AddN(
-		sx.MakeSymbol("fieldset"),
+		sxhtml.MakeSymbol("fieldset"),
 		attrLb.List(),
 	)
 	if legend := fs.legend; legend != "" {
-		lb.Add(sx.MakeList(sx.MakeSymbol("legend"), sx.MakeString(legend)))
+		lb.Add(sx.MakeList(sxhtml.MakeSymbol("legend"), sx.MakeString(legend)))
 	}
 	lb.ExtendBang(renderMessages(messages))
 	for _, field := range fs.fields {

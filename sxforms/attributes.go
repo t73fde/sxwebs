@@ -16,7 +16,10 @@ package sxforms
 // Attributes are technically validators that do not validate, but return HTML
 // attributes.
 
-import "t73f.de/r/sx"
+import (
+	"t73f.de/r/sx"
+	"t73f.de/r/sxwebs/sxhtml"
+)
 
 // ----- Autofocus: where the input starts.
 
@@ -28,7 +31,7 @@ func (AttrAutofocus) Check(*Form, Field) error { return nil }
 
 // Attributes return the HTTP attributes.
 func (AttrAutofocus) Attributes() *sx.Pair {
-	return sx.MakeList(sx.Cons(sx.MakeSymbol("autofocus"), sx.Nil()))
+	return sx.MakeList(sx.Cons(sxhtml.MakeSymbol("autofocus"), sx.Nil()))
 }
 
 // ----- Step: allow to increment / decrement value in HTML client.
@@ -44,5 +47,5 @@ func (AttrStep) Check(*Form, Field) error { return nil }
 
 // Attributes returns HTML attributes as a Sx cons list.
 func (s AttrStep) Attributes() *sx.Pair {
-	return sx.MakeList(sx.Cons(sx.MakeSymbol("step"), sx.MakeString(s.Value)))
+	return sx.MakeList(sx.Cons(sxhtml.MakeSymbol("step"), sx.MakeString(s.Value)))
 }
