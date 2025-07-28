@@ -24,23 +24,26 @@ import (
 
 // InputElement represents a HTTP <input> field.
 type InputElement struct {
-	itype      string
 	name       string
 	label      string
 	value      string
 	validators Validators
 	disabled   bool
+	itype      inputType
 }
 
-// Constants for InputField.itype
+type inputType uint
+
+// Constants for inputType
 const (
-	itypeCheckbox = "checkbox"
-	itypeDate     = "date"
-	itypeDatetime = "datetime-local"
-	itypeEmail    = "email"
-	itypeNumber   = "number"
-	itypePassword = "password"
-	itypeText     = "text"
+	_ inputType = iota
+	itypeCheckbox
+	itypeDate
+	itypeDatetime
+	itypeEmail
+	itypeNumber
+	itypePassword
+	itypeText
 )
 
 // Name returns the name of this element.
@@ -99,13 +102,23 @@ func (fd *InputElement) Render(fieldID string, messages []string) *sx.Pair {
 		sxhtml.SymAttr,
 		sx.Cons(sxhtml.MakeSymbol("id"), sx.MakeString(fieldID)),
 		sx.Cons(sxhtml.MakeSymbol("name"), sx.MakeString(fd.name)),
-		sx.Cons(sxhtml.MakeSymbol("type"), sx.MakeString(fd.itype)),
+		sx.Cons(sxhtml.MakeSymbol("type"), inputTypeString[fd.itype]),
 		sx.Cons(sxhtml.MakeSymbol("value"), sx.MakeString(fd.value)),
 	)
 	addEnablingAttributes(&attrLb, fd.disabled, fd.validators)
 
 	flb.Add(sx.MakeList(sxhtml.MakeSymbol("input"), attrLb.List()))
 	return flb.List()
+}
+
+var inputTypeString = map[inputType]sx.String{
+	itypeCheckbox: sx.MakeString("checkbox"),
+	itypeDate:     sx.MakeString("date"),
+	itypeDatetime: sx.MakeString("datetime-local"),
+	itypeEmail:    sx.MakeString("email"),
+	itypeNumber:   sx.MakeString("number"),
+	itypePassword: sx.MakeString("password"),
+	itypeText:     sx.MakeString("text"),
 }
 
 // TextField builds a new text field.
@@ -136,7 +149,7 @@ func DateValue(t time.Time) string {
 	return t.Format(htmlDateLayout)
 }
 
-// DatetimeField builds a new field to enter dates.
+// DatetimeField builds a new field to enter a local date/time.
 func DatetimeField(name, label string, validators ...Validator) *InputElement {
 	return &InputElement{
 		itype:      itypeDatetime,
