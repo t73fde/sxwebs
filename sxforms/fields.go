@@ -376,6 +376,44 @@ func (se *SelectElement) Render(fieldID string, messages []string) *sx.Pair {
 	return flb.List()
 }
 
+// ----- Flow Content -----
+
+// FlowContentElement adds some flow content to the form.
+type FlowContentElement struct {
+	name    string
+	content *sx.Pair
+}
+
+// FlowContentField allows to add some text (aka flow content) to the form.
+func FlowContentField(name string, content *sx.Pair) *FlowContentElement {
+	return &FlowContentElement{name: name, content: content}
+}
+
+// Name returns the element name.
+func (fce *FlowContentElement) Name() string { return fce.name }
+
+// Value returns the value of the select element.
+func (*FlowContentElement) Value() string { return "" }
+
+// Clear the select element.
+func (*FlowContentElement) Clear() {}
+
+// SetValue sets the value of the select element.
+func (*FlowContentElement) SetValue(value string) error {
+	return fmt.Errorf("flow content has no specific value")
+}
+
+// Validators return the active validators for the select element.
+func (*FlowContentElement) Validators() Validators { return nil }
+
+// Disable the field.
+func (*FlowContentElement) Disable() {}
+
+// Render the select element as SxHTML.
+func (fce *FlowContentElement) Render(fieldID string, messages []string) *sx.Pair {
+	return fce.content
+}
+
 // ----- General utility functions for rendering etc.
 
 func renderLabel(field Field, fieldID, label string) *sx.Pair {
