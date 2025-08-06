@@ -335,7 +335,6 @@ func (f *Form) Render() *sx.Pair {
 	var lb sx.ListBuilder
 	lb.Add(sxhtml.MakeSymbol("form"))
 	lb.Add(sx.MakeList(
-		sxhtml.SymAttr,
 		sx.Cons(sxhtml.MakeSymbol("action"), sx.MakeString(f.action)),
 		sx.Cons(sxhtml.MakeSymbol("method"), sx.MakeString(f.method)),
 	))

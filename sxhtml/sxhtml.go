@@ -39,7 +39,6 @@ func MakeSymbol(s string) *sx.Symbol {
 
 // Names for special symbols.
 const (
-	nameAttr          = "@"
 	nameCDATA         = "@C"
 	nameNoEscape      = "@H"
 	nameListSplice    = "@L"
@@ -50,7 +49,6 @@ const (
 
 // Some often used symbols.
 var (
-	SymAttr          = MakeSymbol(nameAttr)
 	SymCDATA         = MakeSymbol(nameCDATA)
 	SymNoEscape      = MakeSymbol(nameNoEscape)
 	SymListSplice    = MakeSymbol(nameListSplice)
@@ -227,7 +225,7 @@ func (enc *myEncoder) writeTag(sym *sx.Symbol, elems *sx.Pair) {
 	} else {
 		enc.pr.printStrings("<", tagName)
 	}
-	if attrs := enc.getAttributes(elems); attrs != nil {
+	if attrs := getAttributes(elems); attrs != nil {
 		enc.writeAttributes(attrs)
 		elems = elems.Tail()
 	}
@@ -255,16 +253,13 @@ func ignoreEmptyStrings(elem *sx.Pair) *sx.Pair {
 	return nil
 }
 
-func (enc *myEncoder) getAttributes(lst *sx.Pair) *sx.Pair {
-	pair, isPair := sx.GetPair(lst.Car())
-	if !isPair || pair == nil {
-		return nil
+func getAttributes(lst *sx.Pair) *sx.Pair {
+	if pair, isPair := sx.GetPair(lst.Car()); isPair && pair != nil {
+		if _, isAttr := sx.GetPair(pair.Car()); isAttr {
+			return pair
+		}
 	}
-	sym, isSymbol := sx.GetSymbol(pair.Car())
-	if !isSymbol || !sym.IsEqual(SymAttr) {
-		return nil
-	}
-	return pair.Tail()
+	return nil
 }
 
 func (enc *myEncoder) writeAttributes(attrs *sx.Pair) {

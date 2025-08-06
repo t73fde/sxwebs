@@ -23,10 +23,10 @@ The corresponding s-expression representation would be:
     (html
       (head (title "Example"))
       (body
-        (h1 (@ (id "main)) "Title")
+        (h1 ((id "main)) "Title")
         (p "This is some example text.")
         (hr)
-        (div (@ (class "small") (id "footnote)) "Small text.")
+        (div ((class "small") (id "footnote)) "Small text.")
       )
     )
 
@@ -103,9 +103,6 @@ type based on the attribute name.
 
 SxHTML defines some additional symbols, all starting with "@":
 
-* `@` specifies the attribute list of an HTML tag. If must follow immediately
-  the tag symbol and contains a list of pairs, where the first component is a
-  symbol and the second component is a string, the nil value, or a number.
 * `@C` marks some content that should be written as `<![CDATA[...]]>`.
 * `@H` specifies some HTML content that must not be escaped. For example,
   `(@H "&amp;")` is transformed to `&amp;`, but not `&amp;amp;`.
@@ -129,37 +126,37 @@ generated them. Any content except attributes are ignored. Void elements are:
 
 ## Attributes
 
-Attributes are always in the second position of a list containing a tag
-symbol. For example `(a (@ (href . "https://t73f.de/r/sxhtml")) "SxHTML)`
-specifies a link to the page of this library. It will be transformed to
-`<a href="https://t73f.de/r/sxhtml">SxHTML</a>`.
+Attributes are always in the second position of a list containing
+a tag symbol. They are represented as a list of lists/pairs. For
+example `(a ((href . "https://t73f.de/r/sxhtml")) "SxHTML)` specifies
+a link to the page of this library. It will be transformed to `<a
+href="https://t73f.de/r/sxhtml">SxHTML</a>`.
 
 The syntax for attributes is as follows:
 
-* The first element of the attribute list must be the symbol `@`.
-* Remaining elements must be lists, where the first element of each list is a
+* Every element must be a list, where the first element of each list is a
   symbol, which names the attribute.
 * If there is no second element in the list, the attribute is an *empty
-  attribute*. For example, `(input (@ (disabled)))` will be transformed to
+  attribute*. For example, `(input ((disabled)))` will be transformed to
   `<input disabled>`,
 * If there is a second element in the list, it must be an atomic value,
-  preferably a string. For example, `(input (@ (disabled "yes")))` will be
+  preferably a string. For example, `(input ((disabled "yes")))` will be
   transformed to `<input disabled="yes">`.
 * If the lists contains more elements, they are ignored.
 * if the list is a pair, the second element of the pair must be an atomic
-  value, preferably a string. For example, `(input (@ (disabled . "yes")))`
+  value, preferably a string. For example, `(input ((disabled . "yes")))`
   will be transformed to `<input disabled="yes">`.
 
 Since the attribute list is just a list, there might be duplicate symbols
 as attribute names. Only the first occurrence of the symbol will create an
-attribute. For example, `(input (@ (disabled "no") (disabled . "yes")))` will
+attribute. For example, `(input ((disabled "no") (disabled . "yes")))` will
 be transformed to `<input disabled="no">`. This allows to extend the list
 of attributes at the front, if you later want to overwrite the value of an
 attribute.
 
 If you want to prohibit the generation of some attribute while still extending
 the list of attributes at the front, use the nil value *()* as the value of the
-attribute. For example, `(input (@ (disabled ()) (disabled . "yes")))` will be
+attribute. For example, `(input ((disabled ()) (disabled . "yes")))` will be
 transformed to `<input>`.
 
 ## Content

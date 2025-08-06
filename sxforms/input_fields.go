@@ -99,7 +99,6 @@ func (fd *InputElement) Render(fieldID string, messages []string) *sx.Pair {
 
 	var attrLb sx.ListBuilder
 	attrLb.AddN(
-		sxhtml.SymAttr,
 		sx.Cons(sxhtml.MakeSymbol("id"), sx.MakeString(fieldID)),
 		sx.Cons(sxhtml.MakeSymbol("name"), sx.MakeString(fd.name)),
 		sx.Cons(sxhtml.MakeSymbol("type"), inputTypeString[fd.itype]),

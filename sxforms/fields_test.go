@@ -26,7 +26,7 @@ func TestFlowContent(t *testing.T) {
 		sxforms.FlowContentField("fce1", sx.MakeList(sxhtml.MakeSymbol("p"), sx.MakeString("Test"))),
 	)
 
-	exp := "(form (@ (action . \"\") (method . \"POST\")) (p \"Test\"))"
+	exp := "(form ((action . \"\") (method . \"POST\")) (p \"Test\"))"
 	if got := form.Render().String(); got != exp {
 		t.Errorf("expected: %q, but got: %q", exp, got)
 	}

@@ -47,27 +47,36 @@ func TestSXHTML(t *testing.T) {
 		{name: "SimpleHTMLEsc", src: `(p "&")`, exp: `<p>&amp;</p>`},
 		{name: "CDATA", src: `(@C "abc")`, exp: `<![CDATA[abc]]>`},
 
-		{name: "NoValueAttr", src: `(p (@ (checked . ())))`, exp: `<p checked></p>`},
-		{name: "NoValueAttrSimple", src: `(p (@ (checked)))`, exp: `<p checked></p>`},
-		{name: "EmptyValueAttr", src: `(p (@ (checked . "")))`, exp: `<p checked=""></p>`},
-		{name: "EmptyValueAttr2", src: `(p (@ (checked "")))`, exp: `<p checked=""></p>`},
-		{name: "SpaceValueAttr", src: `(p (@ (checked " ")))`, exp: `<p checked=""></p>`},
-		{name: "SingleValueAttr", src: `(p (@ (id . "a")))`, exp: `<p id="a"></p>`},
-		{name: "SingleValueAttrNoDOT", src: `(p (@ (id "a")))`, exp: `<p id="a"></p>`},
-		{name: "SimpleAttrEsc", src: `(p (@ (name . "\"")))`, exp: `<p name="&quot;"></p>`},
-		{name: "SimpleAttrEscNoDOT", src: `(p (@ (name "\"")))`, exp: `<p name="&quot;"></p>`},
-		{name: "DoubleAttr", src: `(p (@ (id "1") (id "2")))`, exp: `<p id="1"></p>`},
-		{name: "SimpleURLAttr", src: `(a (@ (href . "search?q=%&r=Ä")))`, exp: `<a href="search?q=%25&amp;r=%c3%84"></a>`},
-		{name: "SimpleURLAttrNoDOT", src: `(a (@ (href "search?q=%&r=Ä")))`, exp: `<a href="search?q=%25&amp;r=%c3%84"></a>`},
-		{name: "SortedAttr", src: `(p (@ (z . z) (a a)))`, exp: `<p a="a" z="z"></p>`},
-		{name: "DoubleAttr", src: `(p (@ (a . z) (a a)))`, exp: `<p a="z"></p>`},
-		{name: "DeletedAttr", src: `(p (@ (a ()) (z z) (a a)))`, exp: `<p z="z"></p>`},
-		{name: "EmptyAttrKey", src: `(p (@ ("" . a)))`, exp: `<p></p>`},
-		{name: "NilAttrKey", src: `(p (@ (() . a)))`, exp: `<p></p>`},
-		{name: "StringAttr", src: `(p (@ (a . "b")))`, exp: `<p a="b"></p>`},
-		{name: "SymbolAttr", src: `(p (@ (a . b)))`, exp: `<p a="b"></p>`},
-		{name: "NumberAttr", src: `(p (@ (a . 7)))`, exp: `<p a="7"></p>`},
-		{name: "ListAttr", src: `(p (@ (a (1))))`, exp: `<p></p>`},
+		{name: "NoValueAttr", src: `(p ((checked . ())))`, exp: `<p checked></p>`},
+		{name: "NoValueAttrSimple", src: `(p ((checked)))`, exp: `<p checked></p>`},
+		{name: "EmptyValueAttr", src: `(p ((checked . "")))`, exp: `<p checked=""></p>`},
+		{name: "EmptyValueAttr2", src: `(p ((checked "")))`, exp: `<p checked=""></p>`},
+		{name: "SpaceValueAttr", src: `(p ((checked " ")))`, exp: `<p checked=""></p>`},
+		{name: "SingleValueAttr", src: `(p ((id . "a")))`, exp: `<p id="a"></p>`},
+		{name: "SingleValueAttrNoDOT", src: `(p ((id "a")))`, exp: `<p id="a"></p>`},
+		{name: "SimpleAttrEsc", src: `(p ((name . "\"")))`, exp: `<p name="&quot;"></p>`},
+		{name: "SimpleAttrEscNoDOT", src: `(p ((name "\"")))`, exp: `<p name="&quot;"></p>`},
+		{name: "DoubleAttr", src: `(p ((id "1") (id "2")))`, exp: `<p id="1"></p>`},
+		{name: "SimpleURLAttr", src: `(a ((href . "search?q=%&r=Ä")))`, exp: `<a href="search?q=%25&amp;r=%c3%84"></a>`},
+		{name: "SimpleURLAttrNoDOT", src: `(a ((href "search?q=%&r=Ä")))`, exp: `<a href="search?q=%25&amp;r=%c3%84"></a>`},
+		{name: "SortedAttr", src: `(p ((z . z) (a a)))`, exp: `<p a="a" z="z"></p>`},
+		{name: "DoubleAttr", src: `(p ((a . z) (a a)))`, exp: `<p a="z"></p>`},
+		{name: "DeletedAttr", src: `(p ((a ()) (z z) (a a)))`, exp: `<p z="z"></p>`},
+		{name: "EmptyAttrKey", src: `(p (("" . a)))`, exp: `<p></p>`},
+		{name: "NilAttrKey", src: `(p ((() . a)))`, exp: `<p></p>`},
+		{name: "StringAttr", src: `(p ((a . "b")))`, exp: `<p a="b"></p>`},
+		{name: "SymbolAttr", src: `(p ((a . b)))`, exp: `<p a="b"></p>`},
+		{name: "NumberAttr", src: `(p ((a . 7)))`, exp: `<p a="7"></p>`},
+		{name: "ListAttr", src: `(p ((a (1))))`, exp: `<p></p>`},
+
+		// Attribute tests, based on what is written in README.md
+
+		{name: ``, src: `(a ((href . "https://t73f.de/r/sxhtml")) "SxHTML")`, exp: `<a href="https://t73f.de/r/sxhtml">SxHTML</a>`},
+		{name: ``, src: `(input ((disabled)))`, exp: `<input disabled>`},
+		{name: ``, src: `(input ((disabled "yes")))`, exp: `<input disabled="yes">`},
+		{name: ``, src: `(input ((disabled . "yes")))`, exp: `<input disabled="yes">`},
+		{name: ``, src: `(input ((disabled "no") (disabled . "yes")))`, exp: `<input disabled="no">`},
+		{name: ``, src: `(input ((disabled ()) (disabled . "yes")))`, exp: `<input>`},
 
 		{name: "IgnoreEmptyTag", src: `(p)`, exp: ``},
 		{name: "IgnoreTagWithEmptyString", src: `(div "")`, exp: ``},
@@ -94,7 +103,11 @@ func TestWithNewline(t *testing.T) {
 
 func checkTestcases(t *testing.T, testcases []testcase, newGen func() *sxhtml.Generator) {
 	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
+		name := tc.name
+		if name == "" {
+			name = tc.src
+		}
+		t.Run(name, func(t *testing.T) {
 			rd := sxreader.MakeReader(strings.NewReader(tc.src))
 			val, err := rd.Read()
 			if err != nil {

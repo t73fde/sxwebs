@@ -102,7 +102,6 @@ func (se *SubmitElement) Disable() { se.disabled = true }
 func (se *SubmitElement) Render(fieldID string, _ []string) *sx.Pair {
 	var attrLb sx.ListBuilder
 	attrLb.AddN(
-		sxhtml.SymAttr,
 		sx.Cons(sxhtml.MakeSymbol("id"), sx.MakeString(fieldID)),
 		sx.Cons(sxhtml.MakeSymbol("name"), sx.MakeString(se.name)),
 		sx.Cons(sxhtml.MakeSymbol("type"), sx.MakeString("submit")),
@@ -173,7 +172,6 @@ func (cbe *CheckboxElement) Render(fieldID string, _ []string) *sx.Pair {
 
 	var attrLb sx.ListBuilder
 	attrLb.AddN(
-		sxhtml.SymAttr,
 		sx.Cons(sxhtml.MakeSymbol("id"), sx.MakeString(fieldID)),
 		sx.Cons(sxhtml.MakeSymbol("name"), sx.MakeString(cbe.name)),
 		sx.Cons(sxhtml.MakeSymbol("type"), sx.MakeString("checkbox")),
@@ -263,9 +261,10 @@ func (tae *TextAreaElement) Render(fieldID string, messages []string) *sx.Pair {
 	}
 	flb.ExtendBang(renderMessages(messages))
 	var attrLb sx.ListBuilder
-	attrLb.Add(sxhtml.SymAttr)
-	attrLb.Add(sx.Cons(sxhtml.MakeSymbol("id"), sx.MakeString(fieldID)))
-	attrLb.Add(sx.Cons(sxhtml.MakeSymbol("name"), sx.MakeString(tae.name)))
+	attrLb.AddN(
+		sx.Cons(sxhtml.MakeSymbol("id"), sx.MakeString(fieldID)),
+		sx.Cons(sxhtml.MakeSymbol("name"), sx.MakeString(tae.name)),
+	)
 	if rows := tae.rows; rows > 0 {
 		attrLb.Add(sx.Cons(sxhtml.MakeSymbol("rows"), sx.MakeString(fmt.Sprint(rows))))
 	}
@@ -354,7 +353,6 @@ func (se *SelectElement) Render(fieldID string, messages []string) *sx.Pair {
 	flb.ExtendBang(renderMessages(messages))
 	var attrLb sx.ListBuilder
 	attrLb.AddN(
-		sxhtml.SymAttr,
 		sx.Cons(sxhtml.MakeSymbol("id"), sx.MakeString(fieldID)),
 		sx.Cons(sxhtml.MakeSymbol("name"), sx.MakeString(se.name)),
 	)
@@ -366,7 +364,7 @@ func (se *SelectElement) Render(fieldID string, messages []string) *sx.Pair {
 		choice := se.choices[i]
 		text := se.choices[i+1]
 		var alb sx.ListBuilder
-		alb.AddN(sxhtml.SymAttr, sx.Cons(sxhtml.MakeSymbol("value"), sx.MakeString(choice)))
+		alb.Add(sx.Cons(sxhtml.MakeSymbol("value"), sx.MakeString(choice)))
 		addBoolAttribute(&alb, sxhtml.MakeSymbol("disabled"), choice == "")
 		addBoolAttribute(&alb, sxhtml.MakeSymbol("selected"), se.value == choice)
 		wlb.Add(sx.MakeList(sxhtml.MakeSymbol("option"), alb.List(), sx.MakeString(text)))
@@ -423,10 +421,7 @@ func renderLabel(field Field, fieldID, label string) *sx.Pair {
 	var lb sx.ListBuilder
 	lb.AddN(
 		sxhtml.MakeSymbol("label"),
-		sx.MakeList(
-			sxhtml.SymAttr,
-			sx.Cons(sxhtml.MakeSymbol("for"), sx.MakeString(fieldID)),
-		),
+		sx.MakeList(sx.Cons(sxhtml.MakeSymbol("for"), sx.MakeString(fieldID))),
 		sx.MakeString(label),
 	)
 	if field.Validators().HasRequired() {
@@ -440,10 +435,7 @@ func renderMessages(messages []string) *sx.Pair {
 	for _, msg := range messages {
 		lb.Add(sx.MakeList(
 			sxhtml.MakeSymbol("span"),
-			sx.MakeList(
-				sxhtml.SymAttr,
-				sx.Cons(sxhtml.MakeSymbol("class"), sx.MakeString("message")),
-			),
+			sx.MakeList(sx.Cons(sxhtml.MakeSymbol("class"), sx.MakeString("message"))),
 			sx.MakeString(msg),
 		))
 	}
