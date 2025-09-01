@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"t73f.de/r/sx"
+	"t73f.de/r/webs/htmls/tags"
 )
 
 type attrType int
@@ -70,12 +71,6 @@ func NewGenerator() *Generator { return &Generator{} }
 
 // Special elements / attributes
 var (
-	// Void elements: https://html.spec.whatwg.org/multipage/syntax.html#void-elements
-	voidTags = map[string]struct{}{
-		"area": {}, "base": {}, "br": {}, "col": {}, "embed": {}, "hr": {},
-		"img": {}, "input": {}, "link": {}, "meta": {}, "source": {},
-		"track": {}, "wbr": {},
-	}
 	// Attributes with URL values: https://html.spec.whatwg.org/multipage/indices.html#attributes-1
 	urlAttrs = map[string]struct{}{
 		"action": {}, "cite": {}, "data": {}, "formaction": {}, "href": {},
@@ -230,7 +225,7 @@ func (enc *myEncoder) writeTag(sym *sx.Symbol, elems *sx.Pair) {
 		elems = elems.Tail()
 	}
 	enc.pr.printString(">")
-	if _, isVoid := voidTags[symVal]; isVoid {
+	if tags.IsVoid(symVal) {
 		enc.lastWasTag = withNewline
 		return
 	}
