@@ -70,19 +70,19 @@ func (gen *Generator) SetNewline() *Generator { gen.withNewline = true; return g
 func NewGenerator() *Generator { return &Generator{} }
 
 // WriteHTML emit HTML code for the s-expression to the given writer.
-func (gen *Generator) WriteHTML(w io.Writer, obj sx.Object) (int, error) {
+func (gen *Generator) WriteHTML(w io.Writer, obj sx.Object) error {
 	enc := myEncoder{gen: gen, pr: printer{w: w}, lastWasTag: true}
 	enc.generate(obj)
-	return enc.pr.length, enc.pr.err
+	return enc.pr.err
 }
 
 // WriteListHTML emits HTML code for a list of s-expressions to the given writer.
-func (gen *Generator) WriteListHTML(w io.Writer, lst *sx.Pair) (int, error) {
+func (gen *Generator) WriteListHTML(w io.Writer, lst *sx.Pair) error {
 	enc := myEncoder{gen: gen, pr: printer{w: w}, lastWasTag: true}
 	for elem := range lst.Values() {
 		enc.generate(elem)
 	}
-	return enc.pr.length, enc.pr.err
+	return enc.pr.err
 }
 
 type myEncoder struct {
@@ -97,7 +97,7 @@ func (enc *myEncoder) generate(obj sx.Object) {
 		enc.pr.printHTML(o.GetValue())
 		enc.lastWasTag = false
 	case sx.Number:
-		enc.pr.printHTML(string(o.String()))
+		enc.pr.printString(o.String())
 		enc.lastWasTag = false
 	case *sx.Pair:
 		if o.IsNil() {
@@ -297,7 +297,7 @@ func (enc *myEncoder) writeAttributes(attrs *sx.Pair) {
 			default:
 				continue
 			}
-			a[key] = strings.TrimSpace(getAttributeValue(sym, s))
+			a[key] = strings.TrimSpace(s)
 		} else {
 			a[key] = ""
 			empty[key] = struct{}{}
@@ -312,59 +312,43 @@ func (enc *myEncoder) writeAttributes(attrs *sx.Pair) {
 	for _, key := range keys {
 		enc.pr.printStrings(" ", key)
 		if _, isEmpty := empty[key]; !isEmpty {
-			enc.pr.printString(`="`)
-			enc.pr.printAttributeValue(a[key])
-			enc.pr.printString(`"`)
+			enc.pr.printString(`=`)
+			enc.pr.printAttributeValue(getAttributeType(key), a[key])
 		}
 	}
 }
 
-func getAttributeValue(sym *sx.Symbol, value string) string {
-	switch getAttributeType(sym) {
-	case attrURL:
-		return urlEscape(value)
-	default:
-		return value
-	}
-}
-
-func getAttributeType(sym *sx.Symbol) attrType {
-	name := sym.GetValue()
-	if dataName, isData := strings.CutPrefix(name, "data-"); isData {
-		name = dataName
-	} else if prefix, rest, hasPrefix := strings.Cut(name, ":"); hasPrefix {
+func getAttributeType(key string) attrType {
+	if dataName, isData := strings.CutPrefix(key, "data-"); isData {
+		key = dataName
+	} else if prefix, rest, hasPrefix := strings.Cut(key, ":"); hasPrefix {
 		if prefix == "xmlns" {
 			return attrURL
 		}
-		name = rest
+		key = rest
 	}
 
-	if isURLAttr(name) {
+	// Attributes with URL values: https://html.spec.whatwg.org/multipage/indices.html#attributes-1
+	switch key {
+	case "action", "cite", "data", "formaction", "href", "itemid", "itemprop",
+		"itemtype", "ping", "poster", "src":
+
 		return attrURL
 	}
-	if name == "style" {
+
+	// Names that contain something similar to URL are treated as URLs
+	if strings.HasSuffix(key, "uri") || strings.HasSuffix(key, "url") || strings.HasSuffix(key, "doi") {
+		return attrURL
+	}
+
+	if key == "style" {
 		return attrCSS
 	}
 
 	// Attribute names starting with "on" (e.g. "onload") are treated as JavaScript values.
-	if strings.HasPrefix(name, "on") {
+	if strings.HasPrefix(key, "on") {
 		return attrJS
 	}
 
-	// Names that contain something similar to URL are treated as URLs
-	if strings.Contains(name, "url") || strings.Contains(name, "uri") || strings.Contains(name, "src") {
-		return attrURL
-	}
 	return attrPlain
-}
-
-func isURLAttr(s string) bool {
-	// Attributes with URL values: https://html.spec.whatwg.org/multipage/indices.html#attributes-1
-	switch s {
-	case "action", "cite", "data", "formaction", "href", "itemid", "itemprop",
-		"itemtype", "ping", "poster", "src":
-
-		return true
-	}
-	return false
 }

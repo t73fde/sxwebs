@@ -40,10 +40,10 @@ func TestSXHTML(t *testing.T) {
 		{name: "Escape", src: `"&amp;"`, exp: `&amp;amp;`},
 		{name: "DoctypeInline", src: `(@@@@ (html))`, exp: "<!DOCTYPE html>\n<html></html>"},
 		{name: "SimpleComment", src: `(@@ "comment")`, exp: `<!-- comment -->`},
-		{name: "SimpleCommentEsc", src: `(@@ "esc -->")`, exp: `<!-- esc -&#45;> -->`},
-		{name: "CommentWrongMinus", src: `(@@ "-------->")`, exp: `<!-- -&#45;-&#45;-&#45;-&#45;> -->`},
+		{name: "SimpleCommentEsc", src: `(@@ "esc -->")`, exp: `<!-- esc --&gt; -->`},
+		{name: "CommentWrongMinus", src: `(@@ "-------->")`, exp: `<!-- --------&gt; -->`},
 		{name: "SimpleCommentML", src: `(@@@ "line1" "line2")`, exp: "<!--\nline1\nline2\n-->\n"},
-		{name: "SimpleCommentMLEsc", src: `(@@@ "line1" "-----")`, exp: "<!--\nline1\n-&#45;-&#45;-\n-->\n"},
+		{name: "SimpleCommentMLEsc", src: `(@@@ "line1" "-----")`, exp: "<!--\nline1\n-----\n-->\n"},
 		{name: "SimpleHTMLEsc", src: `(p "&")`, exp: `<p>&amp;</p>`},
 		{name: "CDATA", src: `(@C "abc")`, exp: `<![CDATA[abc]]>`},
 
@@ -117,7 +117,7 @@ func checkTestcases(t *testing.T, testcases []testcase, newGen func() *sxhtml.Ge
 
 			gen := newGen()
 			var sb strings.Builder
-			_, err = gen.WriteHTML(&sb, val)
+			err = gen.WriteHTML(&sb, val)
 			if err != nil {
 				t.Error(err)
 				return
@@ -128,7 +128,7 @@ func checkTestcases(t *testing.T, testcases []testcase, newGen func() *sxhtml.Ge
 			}
 
 			sb.Reset()
-			_, err = gen.WriteListHTML(&sb, sx.MakeList(val, sx.MakeString("/"), val))
+			err = gen.WriteListHTML(&sb, sx.MakeList(val, sx.MakeString("/"), val))
 			if err != nil {
 				t.Error(err)
 				return
