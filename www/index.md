@@ -3,9 +3,10 @@
 This is a collection of utility functions to build [Sx](https://t73f.de/r/sx)
 web applications in [Go](https://go.dev/).
 
-* [sxhtml](/dir?ci=tip&name=sxhtml): Generate HTML from S-Expressions
-* [sxhttp](/dir?ci=tip&name=sxhttp): Encapsulates net/http definitions as Sx objects
-* [sxsite](/dir?ci=tip&name=sxsite): Sx code to work with [Webs/site](https://t73f.de/r/webs)
+* [SxHTML](/dir?ci=tip&name=sxhtml): Generate HTML from S-Expressions
+* [SxHTMLs](/dir?ci=tip&name=sxhtmls): Convert [Webs/htmls](https://t73f.de/r/webs/htmls) to SxHTML.
+* [SxHTTP](/dir?ci=tip&name=sxhttp): Encapsulates net/http definitions as Sx objects
+* [SxSite](/dir?ci=tip&name=sxsite): Sx code to work with [Webs/Site](https://t73f.de/r/webs)
 
 ## Usage instructions
 
