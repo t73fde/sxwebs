@@ -69,33 +69,6 @@ func (gen *Generator) SetNewline() *Generator { gen.withNewline = true; return g
 // NewGenerator creates a new generator.
 func NewGenerator() *Generator { return &Generator{} }
 
-// Special elements / attributes
-var (
-	// Attributes with URL values: https://html.spec.whatwg.org/multipage/indices.html#attributes-1
-	urlAttrs = map[string]struct{}{
-		"action": {}, "cite": {}, "data": {}, "formaction": {}, "href": {},
-		"itemid": {}, "itemprop": {}, "itemtype": {}, "ping": {},
-		"poster": {}, "src": {},
-	}
-	allNLTags = map[string]struct{}{
-		"head": {}, "link": {}, "meta": {}, "title": {}, "div": {},
-	}
-	nlTags = map[string]struct{}{
-		nameCDATA: {},
-		"head":    {}, "link": {}, "meta": {}, "title": {}, "script": {}, "body": {},
-		"article": {}, "details": {}, "div": {}, "header": {}, "footer": {}, "form": {},
-		"main": {}, "summary": {},
-		"h1": {}, "h2": {}, "h3": {}, "h4": {}, "h5": {}, "h6": {},
-		"li": {}, "ol": {}, "ul": {}, "dd": {}, "dt": {}, "dl": {},
-		"table": {}, "thead": {}, "tbody": {}, "tr": {},
-		"section": {}, "input": {},
-	}
-	// Elements that may be ignored if empty.
-	ignoreEmptyTags = map[string]struct{}{
-		"div": {}, "span": {}, "code": {}, "kbd": {}, "p": {}, "samp": {},
-	}
-)
-
 // WriteHTML emit HTML code for the s-expression to the given writer.
 func (gen *Generator) WriteHTML(w io.Writer, obj sx.Object) (int, error) {
 	enc := myEncoder{gen: gen, pr: printer{w: w}, lastWasTag: true}
@@ -208,14 +181,13 @@ func (enc *myEncoder) writeDoctype(elems *sx.Pair) {
 }
 
 func (enc *myEncoder) writeTag(sym *sx.Symbol, elems *sx.Pair) {
-	symVal := sym.GetValue()
-	if _, ignoreEmptyTag := ignoreEmptyTags[symVal]; ignoreEmptyTag && ignoreEmptyStrings(elems) == nil {
+	tag := sym.GetValue()
+	if isIgnorableEmptyTag(tag) && ignoreEmptyStrings(elems) == nil {
 		return
 	}
-	_, isNLTag := nlTags[symVal]
-	withNewline := enc.gen.withNewline && isNLTag
+	withNewline := enc.gen.withNewline && isNewLineTag(tag)
 	tagName := sym.String()
-	if _, isAllNLTags := allNLTags[symVal]; withNewline && (!enc.lastWasTag || isAllNLTags) {
+	if withNewline && (!enc.lastWasTag || isAlwaysNewLineTag(tag)) {
 		enc.pr.printStrings("\n<", tagName)
 	} else {
 		enc.pr.printStrings("<", tagName)
@@ -225,7 +197,7 @@ func (enc *myEncoder) writeTag(sym *sx.Symbol, elems *sx.Pair) {
 		elems = elems.Tail()
 	}
 	enc.pr.printString(">")
-	if tags.IsVoid(symVal) {
+	if tags.IsVoid(tag) {
 		enc.lastWasTag = withNewline
 		return
 	}
@@ -239,6 +211,15 @@ func (enc *myEncoder) writeTag(sym *sx.Symbol, elems *sx.Pair) {
 	enc.lastWasTag = withNewline
 }
 
+func isIgnorableEmptyTag(tag string) bool {
+	// tags that can be ignored if empty
+	switch tag {
+	case "div", "span", "code", "kbd", "p", "samp":
+		return true
+	}
+	return false
+}
+
 func ignoreEmptyStrings(elem *sx.Pair) *sx.Pair {
 	for node := range elem.Pairs() {
 		if s, isString := sx.GetString(node.Car()); !isString || s.GetValue() != "" {
@@ -246,6 +227,28 @@ func ignoreEmptyStrings(elem *sx.Pair) *sx.Pair {
 		}
 	}
 	return nil
+}
+
+func isNewLineTag(tag string) bool {
+	switch tag {
+	case nameCDATA,
+		"head", "link", "meta", "title", "script", "body",
+		"article", "details", "div", "header", "footer", "form",
+		"main", "summary",
+		"h1", "h2", "h3", "h4", "h5", "h6",
+		"li", "ol", "ul", "dd", "dt", "dl",
+		"table", "thead", "tbody", "tr",
+		"section", "input":
+		return true
+	}
+	return false
+}
+func isAlwaysNewLineTag(tag string) bool {
+	switch tag {
+	case "head", "link", "meta", "title", "div":
+		return true
+	}
+	return false
 }
 
 func getAttributes(lst *sx.Pair) *sx.Pair {
@@ -326,22 +329,20 @@ func getAttributeValue(sym *sx.Symbol, value string) string {
 }
 
 func getAttributeType(sym *sx.Symbol) attrType {
-	name := sym.String()
+	name := sym.GetValue()
 	if dataName, isData := strings.CutPrefix(name, "data-"); isData {
 		name = dataName
-		sym = MakeSymbol(name)
 	} else if prefix, rest, hasPrefix := strings.Cut(name, ":"); hasPrefix {
 		if prefix == "xmlns" {
 			return attrURL
 		}
 		name = rest
-		sym = MakeSymbol(name)
 	}
 
-	if _, isURLAttr := urlAttrs[sym.GetValue()]; isURLAttr {
+	if isURLAttr(name) {
 		return attrURL
 	}
-	if sym.IsEqual(MakeSymbol("style")) {
+	if name == "style" {
 		return attrCSS
 	}
 
@@ -355,4 +356,15 @@ func getAttributeType(sym *sx.Symbol) attrType {
 		return attrURL
 	}
 	return attrPlain
+}
+
+func isURLAttr(s string) bool {
+	// Attributes with URL values: https://html.spec.whatwg.org/multipage/indices.html#attributes-1
+	switch s {
+	case "action", "cite", "data", "formaction", "href", "itemid", "itemprop",
+		"itemtype", "ping", "poster", "src":
+
+		return true
+	}
+	return false
 }
