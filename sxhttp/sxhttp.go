@@ -40,6 +40,9 @@ func (SxContext) IsNil() bool { return false }
 // IsAtom returns true for an atomic value.
 func (SxContext) IsAtom() bool { return true }
 
+// IsTrue returns true if context can be interpreted as a "true" value.
+func (SxContext) IsTrue() bool { return true }
+
 // IsEqual returns true if the sx content is equal to the given object.
 func (ctx SxContext) IsEqual(other sx.Object) bool {
 	if other.IsNil() {
@@ -91,6 +94,9 @@ func (r *SxRequest) IsNil() bool { return r == nil }
 
 // IsAtom returns true for an atomic value.
 func (*SxRequest) IsAtom() bool { return true }
+
+// IsTrue returns true if request can be interpreted as a "true" value.
+func (r *SxRequest) IsTrue() bool { return r != nil }
 
 // IsEqual returns true if the other object is equal to this request object.
 func (r *SxRequest) IsEqual(other sx.Object) bool {
@@ -176,6 +182,9 @@ func (SxResponseWriter) IsNil() bool { return false }
 
 // IsAtom returns true if this object is an atomic object.
 func (SxResponseWriter) IsAtom() bool { return true }
+
+// IsTrue returns true if response writer can be interpreted as a "true" value.
+func (SxResponseWriter) IsTrue() bool { return true }
 
 // IsEqual returns true, if this response writer is equal to the given object.
 func (w SxResponseWriter) IsEqual(other sx.Object) bool {
