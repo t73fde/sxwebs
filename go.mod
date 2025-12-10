@@ -3,8 +3,8 @@ module t73f.de/r/sxwebs
 go 1.25
 
 require (
-	t73f.de/r/sx v0.0.0-20251205121942-00f4f5115f56
-	t73f.de/r/webs v0.0.0-20251205121834-da0ec7bca49c
+	t73f.de/r/sx v0.0.0-20251210171019-40f5836d1e9e
+	t73f.de/r/webs v0.0.0-20251210170533-145eec3fc953
 )
 
-require t73f.de/r/zero v0.0.0-20251205121600-a80f0f108767 // indirect
+require t73f.de/r/zero v0.0.0-20251210165827-5da8a9d6592c // indirect
