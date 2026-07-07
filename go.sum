@@ -1,6 +1,8 @@
-t73f.de/r/sx v0.0.0-20260306080443-ab609803ae73 h1:j4WuUmnm0jqgZv7ZFqfmF//+L6wj07q7u6xwov0T0KY=
-t73f.de/r/sx v0.0.0-20260306080443-ab609803ae73/go.mod h1:WCICEsA//Zvt21fT2c9V34C2MlRzayLbAIo4hnO+zFU=
-t73f.de/r/webs v0.0.0-20260306080620-a6c44b6362ea h1:m5Cre2Guc0EOg5PqNwrLO3n5Mo9fgnpmBiTjmP6GRI4=
-t73f.de/r/webs v0.0.0-20260306080620-a6c44b6362ea/go.mod h1:3o9eSWw7yHW7WERgyKTmb6IjgyFE3eAFb8/WOBtNNrw=
-t73f.de/r/zero v0.0.0-20260306080233-98be953a37cb h1:1jyJJtLg7PAjWXwj8Y8cCf8bqQNlwY6i/5XbIft+bsA=
-t73f.de/r/zero v0.0.0-20260306080233-98be953a37cb/go.mod h1:KE6aqsi8tNfhUDERONkRjy3tV46gIXNHYOgd5I8OMt4=
+golang.org/x/text v0.39.0 h1:UbZz4pLOvn600D6Oh6GGEI6VAmndrEBLv8/6BEXzyus=
+golang.org/x/text v0.39.0/go.mod h1:3UwRclnC2g0TU9x8PZiyfOajCd1zaUNHF9cvqcQZ+ZM=
+t73f.de/r/sx v0.0.0-20260707123451-9afa5b03bb8a h1:LQJ7LT40uZ/4kjeAZi1nhcksAWZ85FZ4+gpnaRgTgqQ=
+t73f.de/r/sx v0.0.0-20260707123451-9afa5b03bb8a/go.mod h1:EAE2Dp0C0NnWNc4Tv5uAc0XuFN1bntJYad/XSQNze80=
+t73f.de/r/webs v0.0.0-20260707123138-a0fd2693c130 h1:u7UHZPf9yraKTHp9ur6TKitSWCJLW1MiC4JRfgi7YZ0=
+t73f.de/r/webs v0.0.0-20260707123138-a0fd2693c130/go.mod h1:fztrMP5FRIyGWoNO3e38q1J0MIqnomcokFva258Dxls=
+t73f.de/r/zero v0.0.0-20260707122001-de8d8b38ab5b h1:gyQwRIF5RqeAHkSRY1yHxB/KAx5pjA0QQ2ppNXQbY9U=
+t73f.de/r/zero v0.0.0-20260707122001-de8d8b38ab5b/go.mod h1:S4ofQ2BGzbJ8T9biv3fFqdiAPg5OPaCxqjCb4oYR7NY=
