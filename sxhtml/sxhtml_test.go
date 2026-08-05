@@ -89,7 +89,7 @@ func TestSXHTML(t *testing.T) {
 		{name: "Symbol", src: `sym`, exp: ``},
 		{name: "Number", src: `17`, exp: `17`},
 	}
-	checkTestcases(t, testcases, func() *sxhtml.Generator { return sxhtml.NewGenerator() })
+	checkTestcases(t, testcases, sxhtml.NewGenerator)
 }
 
 func TestWithNewline(t *testing.T) {

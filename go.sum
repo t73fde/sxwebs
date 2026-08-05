@@ -1,8 +1,8 @@
-golang.org/x/text v0.39.0 h1:UbZz4pLOvn600D6Oh6GGEI6VAmndrEBLv8/6BEXzyus=
-golang.org/x/text v0.39.0/go.mod h1:3UwRclnC2g0TU9x8PZiyfOajCd1zaUNHF9cvqcQZ+ZM=
-t73f.de/r/sx v0.0.0-20260707123451-9afa5b03bb8a h1:LQJ7LT40uZ/4kjeAZi1nhcksAWZ85FZ4+gpnaRgTgqQ=
-t73f.de/r/sx v0.0.0-20260707123451-9afa5b03bb8a/go.mod h1:EAE2Dp0C0NnWNc4Tv5uAc0XuFN1bntJYad/XSQNze80=
-t73f.de/r/webs v0.0.0-20260707123138-a0fd2693c130 h1:u7UHZPf9yraKTHp9ur6TKitSWCJLW1MiC4JRfgi7YZ0=
-t73f.de/r/webs v0.0.0-20260707123138-a0fd2693c130/go.mod h1:fztrMP5FRIyGWoNO3e38q1J0MIqnomcokFva258Dxls=
-t73f.de/r/zero v0.0.0-20260707122001-de8d8b38ab5b h1:gyQwRIF5RqeAHkSRY1yHxB/KAx5pjA0QQ2ppNXQbY9U=
-t73f.de/r/zero v0.0.0-20260707122001-de8d8b38ab5b/go.mod h1:S4ofQ2BGzbJ8T9biv3fFqdiAPg5OPaCxqjCb4oYR7NY=
+golang.org/x/text v0.40.0 h1:Ub2Z6/xjgF1WrYQz2nuITOEegKFtiIy+rieRJ5lHZKs=
+golang.org/x/text v0.40.0/go.mod h1:hpnzDAfGV753zIKo+wk3u1bVKCGPbrnF7+7LBF/UHVY=
+t73f.de/r/sx v0.0.0-20260805141056-ea83161f71e4 h1:d5DdQdj8LbuHBehhzA/+lXo9YZPdBzN+Pmm5XOcW6dk=
+t73f.de/r/sx v0.0.0-20260805141056-ea83161f71e4/go.mod h1:WEY1lu+n6p55v0IAjDe2oifCEoO0xkW5v2K6C6Ng2Us=
+t73f.de/r/webs v0.0.0-20260805144134-f17333ee093b h1:MDRYwodEMiez8EtIwg7XFfT1BE1ikquZgXU+NystNhg=
+t73f.de/r/webs v0.0.0-20260805144134-f17333ee093b/go.mod h1:6vVvE0OJsg0lanp2CJba9tqzbdgQSuk50z0nhCyjtPo=
+t73f.de/r/zero v0.0.0-20260805134819-2ac05b399912 h1:Odo9hvwyJOklfkgqCkrM7vMS/2E2qGzOADg/EzBeB50=
+t73f.de/r/zero v0.0.0-20260805134819-2ac05b399912/go.mod h1:S4ofQ2BGzbJ8T9biv3fFqdiAPg5OPaCxqjCb4oYR7NY=
